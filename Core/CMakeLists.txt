@@ -1,10 +1,17 @@
 project(CoreLib)
 
-set(SOURCES grr.cpp)
+set(SOURCES
+	src/Window.cpp 
+)
 add_subdirectory(vendor/SDL)
 add_library(STAMINAZE_${PROJECT_NAME} ${SOURCES}) 
 target_include_directories(STAMINAZE_${PROJECT_NAME} PUBLIC 
 	include
 	vendor/SDL/include
 )
-target_link_libraries(STAMINAZE_${PROJECT_NAME} SDL3::SDL3-shared)
+
+if(MINGW) 
+	target_link_libraries(STAMINAZE_${PROJECT_NAME} mingw32)
+endif()
+
+target_link_libraries(STAMINAZE_${PROJECT_NAME} SDL2::SDL2main SDL2::SDL2)
