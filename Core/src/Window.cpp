@@ -1,4 +1,6 @@
 #include "Window.h" 
+#include "Util.h "
+#include "Texture.h"
 
 Window::Window() 
 	: m_SDLRenderer(nullptr), m_SDLWindow(nullptr)
@@ -24,10 +26,17 @@ bool Window::InitWindow(const std::string& name, std::uint16_t w, std::uint16_t 
 
 Window::~Window() 
 {
-	if (m_SDLWindow != nullptr) {
+	if (m_SDLWindow != nullptr) 
+	{
 		SDL_DestroyWindow(m_SDLWindow);
 	}
-	if (m_SDLRenderer != nullptr) {
+	if (m_SDLRenderer != nullptr)
+	{
 		SDL_DestroyRenderer(m_SDLRenderer);
 	}
 } 
+
+void Window::RenderTexture(TextureData& tex, Rect* src, Rect* dst)
+{
+	SDL_RenderCopy(m_SDLRenderer, tex.Texture, src, dst);
+}

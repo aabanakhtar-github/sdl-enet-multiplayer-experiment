@@ -1,10 +1,11 @@
 project(CoreLib)
 
 set(SOURCES
-	src/Window.cpp 
+	src/Window.cpp
+	src/Texture.cpp
 )
 add_subdirectory(vendor/SDL)
-add_library(STAMINAZE_${PROJECT_NAME} ${SOURCES}) 
+add_library(STAMINAZE_${PROJECT_NAME} ${SOURCES} "src/Texture.cpp" "include/ECS.h") 
 target_include_directories(STAMINAZE_${PROJECT_NAME} PUBLIC 
 	include
 	vendor/SDL/include
