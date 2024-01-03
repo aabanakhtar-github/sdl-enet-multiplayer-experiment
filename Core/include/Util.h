@@ -3,12 +3,14 @@
 
 #include "SDL.h"
 #include <iostream>
+#include <cassert>
+#include <string>
+#include <format>
 
-inline void PRINT_SDL_ERROR_MESSAGE(const std::string& user_data)
-{
-#ifdef __DEBUG__ 
-	std::cout << "ERROR! " << user_data << "; SDL_Error: " << SDL_GetError() << "..." << std::endl;
+#ifdef __DEBUG__
+#define CUSTOM_ASSERT(x, message) assert(x && message) 
+#else
+#define ASSERT(x)
 #endif
-}
 
 #endif

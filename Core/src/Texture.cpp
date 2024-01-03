@@ -55,19 +55,13 @@ TextureData& TextureData::operator = (TextureData&& other) noexcept
 	return *this;
 }
 
+// ADD DELETE TO EXISTING COPY 
 TextureData& TextureData::operator = (const TextureData& other)
 {	
 	Surface = SDL_DuplicateSurface(other.Surface);
-	if (Surface == nullptr)
-	{
-	}
-
+	CUSTOM_ASSERT(Surface != nullptr, std::format("Could not create surface! SDL Error: {}", SDL_GetError()).c_str());
 	Texture = SDL_CreateTextureFromSurface(m_Renderer, Surface);
-	if (Texture == nullptr)
-	{
-		
-	}
-
+	CUSTOM_ASSERT(Texture != nullptr, std::format("Could not create texture! SDL Error: {}", SDL_GetError()).c_str());
 	//intentional not in init list
 	m_Width = other.m_Width;
 	m_Height = other.m_Height;
@@ -79,12 +73,7 @@ bool TextureData::Load(Window& window, const std::string& filepath)
 	m_Renderer = window.m_SDLRenderer;
 
 	Surface = SDL_LoadBMP(filepath.c_str());
-	if (Surface == nullptr)
-	{
-		PRINT_SDL_ERROR_MESSAGE(std::format("Could not load Texture: {}", filepath));
-		return false;
-	}
-
+	CUSTOM_ASSERT(Surface != nullptr, std::format("Could not load surface! SDL Error: {}", SDL_GetError()).c_str());
 	SDL_Surface* window_surface = SDL_GetWindowSurface(window.m_SDLWindow);
 	// set the iamge to use the right screen format for rendering performance
 	SDL_Surface* optimized = SDL_ConvertSurface(Surface, window_surface->format, 0);
@@ -92,12 +81,7 @@ bool TextureData::Load(Window& window, const std::string& filepath)
 	Surface = optimized;
 
 	Texture = SDL_CreateTextureFromSurface(window.m_SDLRenderer, Surface);
-	if (Texture == nullptr)
-	{
-		PRINT_SDL_ERROR_MESSAGE(std::format("could not create Texture from Surface: {} !", filepath));
-		return false;
-	}
-	
+	CUSTOM_ASSERT(Texture != nullptr,  std::format("Could not load Texture! SDL Error: {}", SDL_GetError()).c_str());
 	m_Width = Surface->w;
 	m_Height = Surface->h;
 	
@@ -119,11 +103,7 @@ TextureData::~TextureData()
 
 void TextureManager::AddTexture(Window& window, const std::string& key, const std::string& filepath)
 {
-	if (m_Textures.contains(key))
-	{
-		PRINT_SDL_ERROR_MESSAGE(std::format("CANNOT ADD TEXTURE THAT ALREADY EXISTS TO TEXTURE MANAGER! Key: {} ", key));
-		return;
-	}
+	CUSTOM_ASSERT(!m_Textures.contains(key), std::format("Cannot insert an already existing texture {} into Manager!", key).c_str());
 	TextureData tmp;
 	tmp.Load(window, filepath);
 	m_Textures.insert(std::make_pair(key, tmp));

@@ -3,17 +3,31 @@
 #include "Window.h"
 #include "Util.h"
 #include "Texture.h"
+#include "ECS.h"
 
+class c : ECS::Component {
+public:
+	int x;
+};
 
-auto main(int argc, char* argv[]) -> int {
-	SDL_Init(SDL_INIT_EVERYTHING);
-	Window window;
-	if (!window.InitWindow("hello_window", 900, 600)) {
+using namespace ECS;
+
+auto main(int argc, char* argv[]) -> int 
+
+{
+	Scene myscene;
+	myscene.RegisterComponent<c>();
+	auto e = myscene.CreateEntity();
+	myscene.AddComponent<c>(e);
+	auto e2 = myscene.CreateEntity();
+	myscene.AddComponent<c>(e2);
+	auto e3 = myscene.CreateEntity();
+
+	auto view = SceneView<c>(myscene).Get();
+	for (auto i : view)
+	{
+		std::cout << i << " ";
 	}
-	TextureManager::Get().AddTexture(window, "Hello", "foo.bmp");
-	window.Clear();
-	window.RenderTexture(TextureManager::Get()["Hello"], nullptr, nullptr);
-	window.ShowBuffers();
-	SDL_Quit();
-	return EXIT_SUCCESS;
+	std::this_thread::sleep_for(std::chrono::seconds(5));
+	return 0;
 }
