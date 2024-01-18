@@ -6,28 +6,38 @@
 #include <unordered_map>
 
 #include "SDL.h" 
+#include "Util.h"
 
 class Window;
 
 class TextureData
 {
 public:
-	explicit TextureData(); 
+	TextureData();
 	TextureData(const TextureData&);
 	TextureData(TextureData&&) noexcept;
-	TextureData& operator = (const TextureData&);
+	TextureData& operator = (TextureData);
 	TextureData& operator = (TextureData&&) noexcept;
 	~TextureData();
-
+	
 	bool Load(Window& window, const std::string& filepath);
 	// call after making modifications to the surface, reloading the texture basically	
 	bool Refresh() {}
+	friend void swap(TextureData& a, TextureData& b)
+	{
+		using std::swap;
+		swap(a.Surface, b.Surface);
+		swap(a.Texture, b.Texture);
+		swap(a.m_Width, b.m_Width);
+		swap(a.m_Height, b.m_Height);
+		swap(a.m_Renderer, b.m_Renderer);
+	}
 
-	std::uint16_t getWidth() { return m_Width; }
-	std::uint16_t getHeight() { return m_Height; }
+	std::uint16_t GetWidth() { return m_Width; }
+	std::uint16_t GetHeight() { return m_Height; }
 public: 
 	SDL_Surface* Surface; 
-	SDL_Texture* Texture; 
+	SDL_Texture* Texture;
 
 private:
 	std::uint16_t m_Width;
@@ -37,21 +47,24 @@ private:
 
 class TextureManager
 {
+	MAKE_SINGLETON(TextureManager)
+
 public:
-	static TextureManager& Get() 
+	TextureManager() = default; 
+
+	TextureData& GetTexture(const std::string& key)
 	{
-		static TextureManager instance; 
-		return instance;
+		return m_Textures.at(key);
 	}
-	
-	TextureData& operator [] (const std::string& name)
+
+	bool AddTexture(Window& window, const std::string& filepath, const std::string& key)
 	{
-		return m_Textures.at(name);
+		TextureData t;
+		bool valid = t.Load(window, filepath);
+		m_Textures.insert({ key, t });
+		return valid;
 	}
-	
-	void AddTexture(Window& window, const std::string& key, const std::string& filepath);
 private:
-	TextureManager() {}
 	std::unordered_map<std::string, TextureData> m_Textures;
 };
 

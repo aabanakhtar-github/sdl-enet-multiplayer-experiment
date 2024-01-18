@@ -11,5 +11,8 @@
 // Core  
 #include "Util.h"
 #include "Window.h"
+#include "ECS.h"
+#include "Texture.h"
+#include "EventHandler.h"
 
 #endif

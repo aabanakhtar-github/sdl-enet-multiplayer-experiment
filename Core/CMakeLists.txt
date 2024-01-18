@@ -4,9 +4,10 @@ set(SOURCES
 	src/Window.cpp
 	src/Texture.cpp
 	src/ECS.cpp
+	src/EventHandler.cpp
 )
 add_subdirectory(vendor/SDL)
-add_library(STAMINAZE_${PROJECT_NAME} ${SOURCES} "src/Texture.cpp" "include/ECS.h") 
+add_library(STAMINAZE_${PROJECT_NAME} ${SOURCES}) 
 target_include_directories(STAMINAZE_${PROJECT_NAME} PUBLIC 
 	include
 	vendor/SDL/include
