@@ -23,6 +23,7 @@ public:
 	bool Load(Window& window, const std::string& filepath);
 	// call after making modifications to the surface, reloading the texture basically	
 	bool Refresh() {}
+	// cool feature!
 	friend void swap(TextureData& a, TextureData& b)
 	{
 		using std::swap;

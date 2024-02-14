@@ -34,4 +34,4 @@ private:
 	Window& operator = (const Window&) = delete;
 };
 
-#endif
+#endif // WINDOW_H

@@ -3,8 +3,9 @@
 
 int main(int argc, char* argv[])
 {
-	Game::Get().Init(argc, argv);
-	Game::Get().Run();
-	ShutDownCore();
+	Game& game = Game::Get();
+	game.Init(argc, argv);
+	game.Run();
+	game.Close();
 	return 0;
 }

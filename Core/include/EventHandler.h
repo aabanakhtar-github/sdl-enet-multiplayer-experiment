@@ -23,7 +23,6 @@ public:
 	
 	void Update();
 	
-	// no way to init lambdas without passing by reference sadly
 	void BindEvent(SDL_EventType event, std::function<void(SDL_Event&)> binding);
 	
 	// save this value to access the created event later	

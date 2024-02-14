@@ -241,7 +241,7 @@ namespace ECS
 	public:
 		explicit SceneView(Scene& scene)
 		{
-			static_assert((std::is_base_of_v<Component, T> && ...), "SceneView only accepts components deriving from Component");
+			static_assert((std::is_base_of_v<Component, T> && ...), "SceneView only accepts components deriving from Component!");
 
 			if constexpr (sizeof...(T) > 0)
 			{
@@ -270,7 +270,7 @@ namespace ECS
 			}
 		}
 
-		const std::vector<EntityID>& Get()
+		const std::vector<EntityID>& GetEntities()
 		{
 			return m_ValidEntities;
 		}
