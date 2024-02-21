@@ -8,12 +8,6 @@
 #include <string>
 #include <format>
 
-#ifdef __DEBUG__
-#define CUSTOM_ASSERT(x, message) assert(x && message) 
-#else
-#define ASSERT(x)
-#endif
-
 #define MAKE_SINGLETON(classname) \
 	public: \
 		static classname& Get() { \
@@ -34,19 +28,6 @@ inline void InitCore()
 inline void ShutDownCore()
 {
 	SDL_Quit();
-}
-
-inline bool IsColliding(Rect& a, Rect& b)
-{
-    if (a.x < b.x + b.w // is the left side before the right side of b? 
-        && a.x + a.w > b.x 
-        && a.y < b.y + b.h 
-        && a.y + a.h > b.y// is the right side after the left side of b?
-        )
-    {
-        return true;
-    }
-    return false;
 }
 
 #endif //UTIL_H

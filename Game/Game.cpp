@@ -33,6 +33,13 @@ void Game::BindEvents()
 		[&](SDL_Event& e) -> void {
 			GlobalAppState::Get().SetAppState(AppState::AS_QUIT);
 		});
+	eh.BindEvent(SDL_KEYDOWN,
+		[&](SDL_Event& e) -> void {
+			if (e.key.keysym.sym == SDLK_SPACE)
+			{
+				m_GameScene.GetComponent<PhysicsBodyComponent>(0).SetAcceleration(Vector2(0, -5));
+			}
+		});
 }
 
 void Game::Run()
@@ -45,9 +52,18 @@ void Game::Run()
 
 	m_GameScene.AddComponent<PhysicsBodyComponent>(e1)
 		.SetBoundingBox(Rect(0, 0, 100, 100))
-		.SetPosition(Vector2(100, 50))
 		.SetGravityEnabled(true)
 		.SetSimulatesPhysics(true);
+
+	ECS::EntityID e2 = m_GameScene.CreateEntity();
+		m_GameScene.AddComponent<TextureComponent>(e2)
+		.SetSourceRectangle(Rect(0, 0, 100, 140))
+		.SetTextureName("foo");
+
+	m_GameScene.AddComponent<PhysicsBodyComponent>(e2)
+		.SetBoundingBox(Rect(0, 400, 100, 50))
+		.SetGravityEnabled(true)
+		.SetSimulatesPhysics(false);
 
 	bool application_is_running = true;
 	GlobalAppState::Get().SetAppState(AppState::AS_LOOP);

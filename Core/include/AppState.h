@@ -12,9 +12,9 @@ enum class AppState
 class GlobalAppState
 {
 	MAKE_SINGLETON(GlobalAppState)
+
+	GlobalAppState() : m_AppState(AppState::AS_DEFAULT) {}
 public:
-	GlobalAppState() : m_AppState(AppState::AS_DEFAULT), m_Error() {}
-	
 	void SetAppState(AppState state, const std::string& error = "")
 	{
 		m_AppState = state;
@@ -24,12 +24,12 @@ public:
 		}
 	}
 
-	AppState GetAppState()
+	AppState GetAppState() const
 	{
 		return m_AppState;
 	}
 
-	const std::vector<std::string>& GetError()
+	const std::vector<std::string>& GetError() const 
 	{
 		return m_Error;
 	}

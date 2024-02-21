@@ -39,7 +39,7 @@ namespace ECS
 	};
 
 	template<typename T>
-	inline ComponentID GetComponentID()
+	inline ComponentID GetComponentID() 
 	{
 		static_assert(std::is_base_of_v<Component, T> == true, "Cannot create a component ID for non-components!");
 		static ComponentID s_this_ID = __Internal::g_next_componentID++;
@@ -69,7 +69,7 @@ namespace ECS
 			return *(m_ComponentPool.end() - 1);
 		}
 
-		T& GetComponent(EntityID ID)
+		T& GetComponent(EntityID ID) 
 		{
 			assert(m_EntityToComponentMap.contains(ID) && "Cannot get non existent component!");
 			return m_ComponentPool[m_EntityToComponentMap[ID]];
@@ -132,7 +132,7 @@ namespace ECS
 
 
 		template<typename T>
-		T& GetComponent(EntityID ID)
+		T& GetComponent(EntityID ID) 
 		{
 			auto selected_pool = GetComponentPoolOfType<T>();
 			return selected_pool->GetComponent(ID);
@@ -208,7 +208,7 @@ namespace ECS
 		}
 
 		template<typename T>
-		T& GetComponent(EntityID ID)
+		T& GetComponent(EntityID ID)  
 		{
 			assert(m_ActiveEntities.contains(ID) && "Cannot get non-existent component!");
 			return m_ComponentManager.GetComponent<T>(ID);
@@ -270,7 +270,7 @@ namespace ECS
 			}
 		}
 
-		const std::vector<EntityID>& GetEntities()
+		const std::vector<EntityID>& GetEntities() const
 		{
 			return m_ValidEntities;
 		}
@@ -292,4 +292,4 @@ namespace ECS
     } \
 
 }
-#endif
+#endif // ECS_H

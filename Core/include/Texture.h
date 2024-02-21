@@ -34,15 +34,15 @@ public:
 		swap(a.m_Renderer, b.m_Renderer);
 	}
 
-	std::uint16_t GetWidth() { return m_Width; }
-	std::uint16_t GetHeight() { return m_Height; }
+	int GetWidth() const { return m_Width; }
+	int GetHeight() const { return m_Height; }
 public: 
 	SDL_Surface* Surface; 
 	SDL_Texture* Texture;
 
 private:
-	std::uint16_t m_Width;
-	std::uint16_t m_Height;
+	int m_Width;
+	int m_Height;
 	SDL_Renderer* m_Renderer;
 };
 

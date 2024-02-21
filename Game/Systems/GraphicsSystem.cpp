@@ -43,8 +43,9 @@ void GraphicsSystem::Update(ECS::Scene& scene, float delta, bool draw_debug_rect
 		
 		assert(texture_ref.Scale > 0.f && "Cannot create render image of scale <0!");
 
+		// TODO: fix, getwidth returns size of original texture
 		Rect src = texture_ref.SourceRectangle;
-		Rect destination{(int)position_ref.X, (int)position_ref.Y, (int)(float(texture.GetWidth()) * texture_ref.Scale), (int)(float(texture.GetHeight()) * texture_ref.Scale)};
+		Rect destination { (int)position_ref.X, (int)position_ref.Y, (int)(float(texture.GetWidth()) * texture_ref.Scale), (int)(float(texture.GetHeight()) * texture_ref.Scale) };
 		GameWindow->RenderTexture(texture, &src, &destination);
 		GameWindow->DrawRect(destination);
 	}	
@@ -58,7 +59,8 @@ void GraphicsSystem::Update(ECS::Scene& scene, float delta, bool draw_debug_rect
 		assert(texture_ref.Scale > 0.f && "Cannot create render image of scale <0!");
 
 		Rect src = texture_ref.SourceRectangle;
-		Rect destination{(int)physics_ref.Position.X, (int)physics_ref.Position.Y, (int)(float(texture.GetWidth()) * texture_ref.Scale), (int)(float(texture.GetHeight()) * texture_ref.Scale)};
+		Rect destination{ physics_ref.BoundingBox.x, physics_ref.BoundingBox.y, physics_ref.BoundingBox.w, physics_ref.BoundingBox.h };
+		std::cout << destination.y << std::endl;
 		GameWindow->RenderTexture(texture, &src, &destination);
 		GameWindow->DrawRect(destination);
 	}
