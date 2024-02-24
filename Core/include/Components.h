@@ -17,8 +17,10 @@ inline void RegisterComponents(ECS::Scene& scene)
 	scene.RegisterComponent<PhysicsBodyComponent>();
 }
 
+//
 // WARNING: Scale not used with physics component, because it can be visually confusing
-// Modify scale with physics component by moi
+// Modify scale with physics component by modifiying w and h
+// 
 class TextureComponent : public ECS::Component
 {
 public:
@@ -27,9 +29,9 @@ public:
 	DECLARE_MEMBER_AND_ACCESSOR(TextureComponent, std::string, TextureName, "")
 };
 
-/* 
-*	Don't use with PhysicsBodyComponent on Entity! 
-*/
+// 
+//	Don't use with PhysicsBodyComponent on Entity! 
+//
 class PositionComponent : public ECS::Component
 {
 public:

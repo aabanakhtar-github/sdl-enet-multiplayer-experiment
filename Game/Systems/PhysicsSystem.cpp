@@ -6,25 +6,59 @@ void PhysicsSystem::Update(ECS::Scene& scene, float delta)
 {
 	ECS::SceneView<PhysicsBodyComponent> physics_bodies(scene);
 
-	for (int ID : physics_bodies.GetEntities())
+	for (auto ID : physics_bodies.GetEntities())
 	{
 		auto& component = scene.GetComponent<PhysicsBodyComponent>(ID);
 
-		if (component.SimulatesPhysics)
+		if (component.GravityEnabled)
 		{
-			if (component.GravityEnabled)
+			component.Acceleration.Y += 1;
+			std::cout << "bonjour" << ID << std::endl;
+		}	
+
+		component.Velocity += component.Acceleration;
+
+		component.BoundingBox.x += component.Velocity.X; 
+		for (auto other : physics_bodies.GetEntities())
+		{
+			if (ID == other) continue;
+			auto& other_component = scene.GetComponent<PhysicsBodyComponent>(other); 
+			if (IsColliding(other_component.BoundingBox, component.BoundingBox))
 			{
-				component.Acceleration.Y += GRAVITY;
+				if (component.Velocity.X > 0)
+				{
+					component.BoundingBox.x = other_component.BoundingBox.x - component.BoundingBox.w;
+				}
+				else if (component.Velocity.X < 0)
+				{
+					component.BoundingBox.x = other_component.BoundingBox.x + other_component.BoundingBox.w;
+				}
+
+				component.Velocity.X = 0;
 			}
+		}	
 		
-			component.Velocity += component.Acceleration;
-			component.BoundingBox.x += (int)component.Velocity.X;
-			component.BoundingBox.y += (int)component.Velocity.Y;
+		component.BoundingBox.y += component.Velocity.Y; 
+		for (auto other : physics_bodies.GetEntities())
+		{
+			if (ID == other) continue;
+			auto& other_component = scene.GetComponent<PhysicsBodyComponent>(other); 
+			if (IsColliding(other_component.BoundingBox, component.BoundingBox))
+			{
+				if (component.Velocity.Y > 0)
+				{
+					component.BoundingBox.y = other_component.BoundingBox.y - component.BoundingBox.h;
+				}
+				else if (component.Velocity.Y < 0)
+				{
+					component.BoundingBox.y = other_component.BoundingBox.y + other_component.BoundingBox.h;
+				}
 
-			ResolveCollisions(component, physics_bodies, scene);
+				component.Velocity.Y = 0;
+			}
+		}		
 
-			component.Acceleration = { 0, 0 };
-		}
+		component.Acceleration = { 0, 0 };
 	}
 }
 
@@ -32,33 +66,47 @@ void PhysicsSystem::ResolveCollisions(PhysicsBodyComponent& component, ECS::Scen
 {
 	for (auto ID : scene_view.GetEntities())
 	{
-		PhysicsBodyComponent other = scene.GetComponent<PhysicsBodyComponent>(ID);
-		// don't check if self collides with self
-		if (component == other) continue;
-	
-		if (IsColliding(component.BoundingBox, other.BoundingBox))
+		PhysicsBodyComponent& other = scene.GetComponent<PhysicsBodyComponent>(ID);	
+
+		if (component != other)
 		{
-			if (component.Velocity.X > 0)
+			// move horizontally first 
+			component.BoundingBox.x += component.Velocity.X;	
+			if (IsColliding(other.BoundingBox, component.BoundingBox))
 			{
-				component.BoundingBox.x = other.BoundingBox.x - component.BoundingBox.w;
-			}
-			else if (component.Velocity.X < 0)
-			{
-				component.BoundingBox.x = other.BoundingBox.x + other.BoundingBox.w;	
-			}
-		
-			// seperate axis, in order to simplify resolution
-			if (component.Velocity.Y > 0)
-			{
-				component.BoundingBox.y = other.BoundingBox.y - component.BoundingBox.h;
-			}
-			else if (component.Velocity.Y < 0)
-			{
-				component.BoundingBox.y = other.BoundingBox.y + other.BoundingBox.h;
+				if (component.Velocity.X > 0) 
+				{
+					// hit left side of something 
+					component.BoundingBox.x = other.BoundingBox.x - component.BoundingBox.w;
+				}	
+				else if (component.Velocity.X < 0)
+				{
+					// hit right side
+					component.BoundingBox.x = other.BoundingBox.x + other.BoundingBox.w;
+				}
+
+				component.Velocity.X = 0;
+				component.Acceleration.X = 0;
 			}
 
-			component.Velocity = { 0, 0 };
-			component.Acceleration = { 0, 0 };
+			component.BoundingBox.y += component.Velocity.Y;
+			if (IsColliding(other.BoundingBox, component.BoundingBox))
+			{
+				if (component.Velocity.Y > 0)
+				{
+					// hit the top side
+					component.BoundingBox.y = other.BoundingBox.y - component.BoundingBox.h;
+				} 
+				else if (component.Velocity.Y < 0)
+				{
+					// hit the bottom side 
+					component.BoundingBox.y = other.BoundingBox.y + other.BoundingBox.h;
+				}
+
+				component.Velocity.Y = 0;
+				component.Acceleration.Y = 0;
+			}
+
 		}
 	}
 }

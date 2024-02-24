@@ -3,7 +3,6 @@
 
 enum class AppState
 {
-	AS_DEFAULT,
 	AS_FAIL, 
 	AS_QUIT,
 	AS_LOOP
@@ -13,7 +12,7 @@ class GlobalAppState
 {
 	MAKE_SINGLETON(GlobalAppState)
 
-	GlobalAppState() : m_AppState(AppState::AS_DEFAULT) {}
+	GlobalAppState() : m_AppState(AppState::AS_LOOP), m_Error() {}
 public:
 	void SetAppState(AppState state, const std::string& error = "")
 	{

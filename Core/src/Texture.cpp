@@ -4,9 +4,10 @@
 
 #include "Util.h"
 #include "Window.h"
+#include "AppState.h"
 
 TextureData::TextureData()
-	: m_Height(0), m_Width(0), m_Renderer(nullptr), Surface(nullptr), Texture(nullptr)
+	: m_Height(0), m_Width(0), m_Renderer(nullptr), Surface(nullptr), Texture(nullptr), m_Valid(false)
 {}
 
 TextureData::TextureData(const TextureData& other)
@@ -30,6 +31,7 @@ TextureData::TextureData(const TextureData& other)
 
 	m_Width = Surface->w;
 	m_Height = Surface->h;
+	m_Valid = true;
 }
 
 TextureData::TextureData(TextureData&& other) noexcept
@@ -56,6 +58,10 @@ TextureData& TextureData::operator = (TextureData other)
 
 bool TextureData::Load(Window& window, const std::string& filepath)
 {
+	SDL_FreeSurface(Surface);
+	SDL_DestroyTexture(Texture);
+	
+	m_Valid = false;
 	m_Renderer = window.m_SDLRenderer;
 	Surface = SDL_LoadBMP(filepath.c_str());	
 	if (Surface == nullptr)
@@ -76,11 +82,12 @@ bool TextureData::Load(Window& window, const std::string& filepath)
 	Texture = SDL_CreateTextureFromSurface(window.m_SDLRenderer, Surface);
 	if (Texture == nullptr)
 	{
-		std::cout << SDL_GetError() << std::endl;
+		return false;
 	}
 	
 	m_Width = Surface->w;
 	m_Height = Surface->h;	
+	m_Valid = true;	
 	return true;
 }
 
@@ -91,4 +98,3 @@ TextureData::~TextureData()
 	SDL_DestroyTexture(Texture);
 	Texture = nullptr;
 }
-

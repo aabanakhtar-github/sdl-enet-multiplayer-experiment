@@ -34,8 +34,9 @@ public:
 		swap(a.m_Renderer, b.m_Renderer);
 	}
 
-	int GetWidth() const { return m_Width; }
+	int GetWidth() const { return  m_Width; }
 	int GetHeight() const { return m_Height; }
+	bool GetValid() const { return m_Valid; }
 public: 
 	SDL_Surface* Surface; 
 	SDL_Texture* Texture;
@@ -44,6 +45,7 @@ private:
 	int m_Width;
 	int m_Height;
 	SDL_Renderer* m_Renderer;
+	bool m_Valid;
 };
 
 class TextureManager
@@ -62,6 +64,12 @@ public:
 	{
 		TextureData t;
 		bool valid = t.Load(window, filepath);
+
+		if (!valid) 
+		{
+			return valid;
+		}
+
 		m_Textures.insert({ key, t });
 		return valid;
 	}

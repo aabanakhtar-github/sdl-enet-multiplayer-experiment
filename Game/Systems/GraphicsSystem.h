@@ -2,7 +2,7 @@
 #include "Util.h"
 #include "ECS.h"
 
-class GraphicsSystem
+class GraphicsSystem : ECS::ISystem
 {
 	MAKE_SINGLETON(GraphicsSystem)
 public:
@@ -11,7 +11,10 @@ public:
 	void InitMedia();
 
 	// Render Loop
-	void Update(ECS::Scene& scene, float delta = 0.f, bool draw_debug_rects = false);
+	virtual void Init(ECS::Scene& scene);
+	virtual void Update(ECS::Scene& scene, float delta);
+public:
+	bool DrawDebugRects;
 public:
 	std::unique_ptr<class Window> GameWindow;
 };

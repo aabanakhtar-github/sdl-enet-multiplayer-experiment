@@ -6,6 +6,7 @@ set(SOURCES
 	Game.cpp 
 	Systems/GraphicsSystem.cpp
 	Systems/PhysicsSystem.cpp
+	Systems/PlayerInputSystem.cpp
 ) 
 
 add_executable( ${PROJECT_NAME} ${SOURCES} ) 

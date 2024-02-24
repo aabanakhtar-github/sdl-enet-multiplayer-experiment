@@ -283,6 +283,13 @@ namespace ECS
 		SceneView& operator = (const SceneView& other) = delete;
 	};
 
+	class ISystem 
+	{
+	public:
+		virtual void Update(Scene& scene, float delta) = 0;
+		virtual void Init(Scene& scene) = 0;
+	};
+
 	// Convenience macro: No one wants to write extremely bloated code :D
 #define DECLARE_MEMBER_AND_ACCESSOR(classname, member_type, member_name, default_value) \
     member_type member_name = default_value; \

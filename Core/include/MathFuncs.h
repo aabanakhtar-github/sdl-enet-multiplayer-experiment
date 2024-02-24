@@ -7,21 +7,21 @@ struct Vector2
 {
 	float X = 0.0, Y = 0.0;
 
-	friend Vector2 operator + (const Vector2& a, const Vector2& other) 
+	constexpr friend Vector2 operator + (const Vector2& a, const Vector2& other) 
 	{
 		return Vector2(a.X + other.X, a.Y + other.Y);
 	}
 	
-	auto operator <=> (const Vector2& other) const = default;
+	constexpr auto operator <=> (const Vector2& other) const = default;
 
-	Vector2& operator += (const Vector2& other)
+	constexpr Vector2& operator += (const Vector2& other)
 	{
 		X += other.X;
 		Y += other.Y;
 		return *this;
 	}
 
-	friend bool operator == (const Vector2& a, const Vector2& b)
+	constexpr friend bool operator == (const Vector2& a, const Vector2& b)
 	{
 		return a.X == b.X && b.Y == a.Y;
 	}
@@ -29,10 +29,10 @@ struct Vector2
 
 inline bool IsColliding(const Rect& a, const Rect& b)
 {
-    if (a.x <= b.x + b.w // is the left side before the right side of b? 
-        && a.x + a.w >= b.x 
-        && a.y <= b.y + b.h 
-        && a.y + a.h >= b.y// is the right side after the left side of b?
+    if (a.x < b.x + b.w // is the left side before the right side of b? 
+        && a.x + a.w > b.x 
+        && a.y < b.y + b.h 
+        && a.y + a.h > b.y// is the right side after the left side of b?
         )
     {
         return true;
