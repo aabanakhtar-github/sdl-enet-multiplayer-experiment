@@ -4,4 +4,4 @@ In development platformer game that features Custom ECS, Physics, and SDL2 based
 
 ## Upcoming
 - An actual game
-- DTLS UDP Networking
+- Basic "Securish" UDP Networking
