@@ -1,6 +1,10 @@
 #include "Game.h"
 #include "Util.h" 
 #include "CreateScenes.h"
+#include <chrono> 
+#include <thread> 
+
+using namespace std::chrono::literals; 
 
 namespace Server
 {
@@ -56,6 +60,9 @@ quit:
         }
 
         CreateGameLevel(m_Arena, true)
+
+        ECS::SystemManager::Get().RegisterSystems({ m_ServerEventSystem, m_GraphicsSystem })
+        ECS::SystemManager::Get().InitSystems(m_Arena);  
     }
 
     void Game::Quit()
@@ -65,7 +72,8 @@ quit:
 
     void Game::Loop() 
     {
-
+        ECS::SystemManager::Get.UpdateSystems()
+        std::this_thread::sleep_for(1667ms);  
     }
 
 }
