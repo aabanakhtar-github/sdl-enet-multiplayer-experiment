@@ -22,8 +22,8 @@ public:
 	
 	bool Load(Window& window, const std::string& filepath);
 	// call after making modifications to the surface, reloading the texture basically	
-	bool Refresh() {}
-	// cool feature!
+	bool Refresh();
+	// cool feature
 	friend void swap(TextureData& a, TextureData& b)
 	{
 		using std::swap;
@@ -32,6 +32,7 @@ public:
 		swap(a.m_Width, b.m_Width);
 		swap(a.m_Height, b.m_Height);
 		swap(a.m_Renderer, b.m_Renderer);
+		swap(a.m_Valid, b.m_Valid);
 	}
 
 	int GetWidth() const { return  m_Width; }
@@ -46,6 +47,7 @@ private:
 	int m_Height;
 	SDL_Renderer* m_Renderer;
 	bool m_Valid;
+
 };
 
 class TextureManager
@@ -63,15 +65,13 @@ public:
 	bool AddTexture(Window& window, const std::string& filepath, const std::string& key)
 	{
 		TextureData t;
-		bool valid = t.Load(window, filepath);
-
-		if (!valid) 
+		if(!t.Load(window, filepath))
 		{
-			return valid;
+			return false;
 		}
 
-		m_Textures.insert({ key, t });
-		return valid;
+		m_Textures.insert({ key, std::move(t) });
+		return true;
 	}
 private:
 	std::unordered_map<std::string, TextureData> m_Textures;

@@ -21,8 +21,7 @@ class EventHandler
 public:
 	EventHandler() = default;
 	
-	void Update();
-	
+	void Update();	
 	void BindEvent(SDL_EventType event, std::function<void(SDL_Event&)> binding);
 	
 	// save this value to access the created event later	

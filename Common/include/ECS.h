@@ -21,9 +21,9 @@ namespace ECS
 	namespace __Internal
 	{
 		extern ComponentID g_next_componentID;
-		constexpr EntityID k_max_entities = 10'000;
-		constexpr ComponentID k_max_components_per_entity = 32;
-		using ComponentMask = std::bitset<k_max_components_per_entity>;
+		constexpr EntityID MAX_ENTITIES = 10'000;
+		constexpr ComponentID MAX_COMPONENT_PER_ENTITY = 32;
+		using ComponentMask = std::bitset<MAX_COMPONENT_PER_ENTITY>;
 
 		struct EntityData
 		{
@@ -32,9 +32,8 @@ namespace ECS
 		};
 	}
 
-	class Component
+	struct Component
 	{
-	public:
 		Component() = default;
 	};
 
@@ -43,7 +42,7 @@ namespace ECS
 	{
 		static_assert(std::is_base_of_v<Component, T> == true, "Cannot create a component ID for non-components!");
 		static ComponentID s_this_ID = __Internal::g_next_componentID++;
-		assert(s_this_ID < __Internal::k_max_components_per_entity && "Too many components! Consider modifying ECS::__Internal::k_max_components_per_entity");
+		assert(s_this_ID < __Internal::MAX_COMPONENT_PER_ENTITY && "Too many components! Consider modifying ECS::__Internal::MAX_COMPONENT_PER_ENTITY");
 		return s_this_ID;
 	}
 
@@ -108,10 +107,7 @@ namespace ECS
 	class ComponentManager
 	{
 	public:
-		explicit ComponentManager()
-		{
-
-		}
+		explicit ComponentManager() = default;
 
 		template<typename T>
 		T& AddComponent(EntityID ID)
@@ -161,9 +157,9 @@ namespace ECS
 	{
 	public:
 		explicit Scene() :
-			m_FreeEntityIDs(__Internal::k_max_entities)
+			m_FreeEntityIDs(__Internal::MAX_ENTITIES)
 		{
-			for (EntityID i = 0; i < __Internal::k_max_entities; ++i)
+			for (EntityID i = 0; i < __Internal::MAX_ENTITIES; ++i)
 			{
 				m_FreeEntityIDs[i] = i;
 			}
@@ -172,7 +168,7 @@ namespace ECS
 		[[nodiscard]] EntityID CreateEntity()
 		{
 			EntityID e = m_FreeEntityIDs.front();
-			assert(e < __Internal::k_max_entities && "Cannot have more than 10000 entites");
+			assert(e < __Internal::MAX_ENTITIES && "Cannot have more than 10000 entites");
 			m_ActiveEntities.insert(std::make_pair(e, __Internal::ComponentMask()));
 			m_FreeEntityIDs.pop_front();
 			return e;
@@ -290,13 +286,52 @@ namespace ECS
 		virtual void Init(Scene& scene) = 0;
 	};
 
-	// Convenience macro: No one wants to write extremely bloated code :D
-#define DECLARE_MEMBER_AND_ACCESSOR(classname, member_type, member_name, default_value) \
-    member_type member_name = default_value; \
-    classname& Set##member_name(member_type&& value) { \
-        member_name = std::move(value); \
-        return *this; \
-    } \
+	class SystemManager 
+	{
+		SystemManager(const SystemManager&) = delete; 
+		SystemManager& operator = (const SystemManager&) = delete; 
+		SystemManager() = default; 
 
+	public:
+		// cross engine compat
+		static SystemManager& Get() 
+		{
+			static SystemManager manager; 
+			return manager;
+		}
+
+		void InitAllSystems(ECS::Scene& scene)
+		{
+			for (auto& system : m_Systems)
+			{
+				system->Init(scene);
+			}
+		}
+
+		void RegisterSystem(ISystem* system)
+		{
+			m_Systems.push_back(std::unique_ptr<ISystem>(system));
+		}
+
+		void RegisterSystems(const std::vector<ISystem*>& systems)
+		{
+			for (auto& system : systems) 
+			{
+				m_Systems.push_back(std::unique_ptr<ISystem>(system));
+			}	
+		}
+
+		void UpdateSystems(float delta, ECS::Scene& scene) 
+		{
+			for (auto& system : m_Systems)
+			{
+				system->Update(scene, delta);		
+			}
+		}
+
+	private:
+		std::vector<std::unique_ptr<ISystem>> m_Systems;
+	};
 }
+
 #endif // ECS_H

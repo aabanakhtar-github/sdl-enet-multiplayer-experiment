@@ -1,7 +1,5 @@
 #include "Window.h" 
-
 #include <format>
-
 #include "Util.h "
 #include "Texture.h"
 #include "AppState.h"
@@ -32,14 +30,10 @@ bool Window::InitWindow(const std::string& name, std::uint16_t w, std::uint16_t 
 
 Window::~Window() 
 {
-	if (m_SDLWindow != nullptr) 
-	{
-		SDL_DestroyWindow(m_SDLWindow);
-	}
-	if (m_SDLRenderer != nullptr)
-	{
-		SDL_DestroyRenderer(m_SDLRenderer);
-	}
+	SDL_DestroyWindow(m_SDLWindow);
+	SDL_DestroyRenderer(m_SDLRenderer);
+	m_SDLWindow = nullptr; 
+	m_SDLRenderer = nullptr; 
 } 
 
 void Window::RenderTexture(TextureData& tex, Rect* src, Rect* dst)

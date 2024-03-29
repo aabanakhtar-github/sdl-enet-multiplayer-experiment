@@ -22,8 +22,8 @@ void GraphicsSystem::Init(ECS::Scene& scene)
 		bool success = TextureManager::Get().AddTexture(*GameWindow, file, name);
 		if (!success) 
 		{
-			// use a placeholder
-		}	
+			std::cerr << "Failed to load texture " << file << " with SDL_ERROR: " << SDL_GetError() << std::endl;
+		}		
 	};
 
 	protected_load("foo.bmp", "foo");
@@ -43,26 +43,38 @@ void GraphicsSystem::Update(ECS::Scene& scene, float delta)
 		TextureComponent& texture_ref = scene.GetComponent<TextureComponent>(ID);
 		PositionComponent& position_ref = scene.GetComponent<PositionComponent>(ID);
 		TextureData& texture = manager.GetTexture(texture_ref.TextureName);
-		
-		assert(texture_ref.Scale > 0.f && "Cannot create render image of scale <0!");
+
+		if (!texture.GetValid())
+		{
+			std::cerr << "Cannot render texture named " << texture_ref.TextureName << "! SDL_Error: " << SDL_GetError() << std::endl;
+			continue;	
+		}	
+
+		assert((texture_ref.Scale.w > 0 && texture_ref.Scale.h > 0) && "Cannot create render image of scale <0!");
 
 		Rect src = texture_ref.SourceRectangle;
-		Rect destination { (int)position_ref.X, (int)position_ref.Y, (int)(float(texture.GetWidth()) * texture_ref.Scale), (int)(float(texture.GetHeight()) * texture_ref.Scale) };
+		Rect destination { (int)position_ref.Position.X, (int)position_ref.Position.Y, texture_ref.Scale.w, texture_ref.Scale.h };
 		GameWindow->RenderTexture(texture, &src, &destination);
 	
 		if (DrawDebugRects)	
 		{
 			GameWindow->DrawRect(destination);
-		}		
+		}
 	}	
 
- // physics entities don't have postion component, handle seperate
+    // physics entities don't have postion component, handle seperate
 	for (ECS::EntityID ID : PhysicsIDs.GetEntities())
 	{
 		TextureComponent& texture_ref = scene.GetComponent<TextureComponent>(ID);
 		PhysicsBodyComponent& physics_ref = scene.GetComponent<PhysicsBodyComponent>(ID);
 		TextureData& texture = manager.GetTexture(texture_ref.TextureName);
-		
+
+		if (!texture.GetValid())
+		{
+			std::cerr << "Cannot render texture named " << texture_ref.TextureName << "! SDL_Error: " << SDL_GetError() << std::endl;
+			continue;	
+		}
+
 		Rect src = texture_ref.SourceRectangle;
 		Rect destination{ physics_ref.BoundingBox.x, physics_ref.BoundingBox.y, physics_ref.BoundingBox.w, physics_ref.BoundingBox.h };
 		GameWindow->RenderTexture(texture, &src, &destination);

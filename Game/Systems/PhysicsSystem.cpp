@@ -12,13 +12,12 @@ void PhysicsSystem::Update(ECS::Scene& scene, float delta)
 
 		if (component.GravityEnabled)
 		{
-			component.Acceleration.Y += 1;
-			std::cout << "bonjour" << ID << std::endl;
+			component.Acceleration.Y += kGRAVITY;
 		}	
 
 		component.Velocity += component.Acceleration;
 
-		component.BoundingBox.x += component.Velocity.X; 
+		component.BoundingBox.x += component.Velocity.X * delta; 
 		for (auto other : physics_bodies.GetEntities())
 		{
 			if (ID == other) continue;
@@ -38,7 +37,7 @@ void PhysicsSystem::Update(ECS::Scene& scene, float delta)
 			}
 		}	
 		
-		component.BoundingBox.y += component.Velocity.Y; 
+		component.BoundingBox.y += component.Velocity.Y * delta; 
 		for (auto other : physics_bodies.GetEntities())
 		{
 			if (ID == other) continue;

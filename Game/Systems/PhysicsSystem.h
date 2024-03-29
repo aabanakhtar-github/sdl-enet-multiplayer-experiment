@@ -3,10 +3,10 @@
 
 #include "Util.h"
 #include "ECS.h"
+#include "Components.h"
 
-class PhysicsSystem : ECS::ISystem
+class PhysicsSystem : public ECS::ISystem
 {
-	MAKE_SINGLETON(PhysicsSystem)
 public:
 	PhysicsSystem() = default;
 	
@@ -15,7 +15,7 @@ public:
 private:
 	void ResolveCollisions(PhysicsBodyComponent& component, ECS::SceneView<PhysicsBodyComponent>& scene_view, ECS::Scene& scene);
 private:
-	constexpr static float kGRAVITY = .3f;
+	constexpr static float kGRAVITY = 10.0f;
 };
 
 #endif // PHYSICS_SYSTEM_H
