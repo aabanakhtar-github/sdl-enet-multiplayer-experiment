@@ -17,23 +17,25 @@ NetClient::NetClient(std::function<void(const PacketData&)> recv_callback)
 }
 
 NetClient::NetClient(NetClient&& other) 
-{ 
-    std::swap(this->m_Client, other.m_Client); 
-    std::swap(this->m_Server, other.m_Server); 
-    std::swap(this->m_Username, other.m_Username); 
-    std::swap(this->m_ID, other.m_ID); 
-    std::swap(this->m_Valid, other.m_Valid); 
-    std::swap(this->m_Connected, other.m_Connected); 
+{
+    std::swap(m_RecvCallback, other.m_RecvCallback); 
+    std::swap(m_Client, other.m_Client); 
+    std::swap(m_Server, other.m_Server); 
+    std::swap(m_Username, other.m_Username); 
+    std::swap(m_ID, other.m_ID); 
+    std::swap(m_Valid, other.m_Valid); 
+    std::swap(m_Connected, other.m_Connected); 
 }
 
 NetClient& NetClient::operator = (NetClient&& other) 
 {
-    std::swap(this->m_Client, other.m_Client); 
-    std::swap(this->m_Server, other.m_Server); 
-    std::swap(this->m_Username, other.m_Username); 
-    std::swap(this->m_ID, other.m_ID); 
-    std::swap(this->m_Valid, other.m_Valid); 
-    std::swap(this->m_Connected, other.m_Connected); 
+    std::swap(m_RecvCallback, other.m_RecvCallback);
+    std::swap(m_Client, other.m_Client); 
+    std::swap(m_Server, other.m_Server); 
+    std::swap(m_Username, other.m_Username); 
+    std::swap(m_ID, other.m_ID); 
+    std::swap(m_Valid, other.m_Valid); 
+    std::swap(m_Connected, other.m_Connected); 
     return *this; 
 }
 

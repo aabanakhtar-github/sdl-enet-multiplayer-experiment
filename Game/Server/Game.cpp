@@ -4,7 +4,7 @@
 #include <chrono> 
 #include <thread> 
 
-using namespace std::chrono::literals; 
+using namespace std::chrono_literals; 
 
 namespace Server
 {
@@ -59,21 +59,27 @@ quit:
             return; 
         }
 
-        CreateGameLevel(m_Arena, true)
+        m_ServerEventSystem->SetupServer(7777); 
 
-        ECS::SystemManager::Get().RegisterSystems({ m_ServerEventSystem, m_GraphicsSystem })
-        ECS::SystemManager::Get().InitSystems(m_Arena);  
+        CreateGameLevel(m_Arena, true);
+
+        ECS::SystemManager::Get().RegisterSystems({ m_ServerEventSystem, m_PhysicsSystem, m_GraphicsSystem });
+        ECS::SystemManager::Get().InitAllSystems(m_Arena);  
+
+        if (GlobalAppState::Get().GetAppState() != AppState::AS_FAIL)
+        {
+            GlobalAppState::Get().SetAppState(AppState::AS_LOOP); 
+        } 
     }
 
     void Game::Quit()
     {
-
     }
 
     void Game::Loop() 
     {
-        ECS::SystemManager::Get.UpdateSystems()
-        std::this_thread::sleep_for(1667ms);  
+        ECS::SystemManager::Get().UpdateSystems(0.16666667, m_Arena); 
+        std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000/60))); 
     }
 
 }

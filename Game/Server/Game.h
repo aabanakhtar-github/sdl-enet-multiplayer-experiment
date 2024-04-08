@@ -4,7 +4,7 @@
 #include "ECS.h"
 #include "GraphicsSystem.h"
 #include "PhysicsSystem.h"
-
+#include "ServerEventSystem.h"
 
 namespace Server
 {

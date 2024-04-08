@@ -24,9 +24,16 @@ struct ClientData
 
 class NetServer
 {
+    NetServer(const NetServer&) = delete; 
+    NetServer& operator = (const NetServer&) = delete; 
 public:
+    explicit NetServer() : m_Valid(false) {}
     explicit NetServer(const std::uint16_t port, const std::size_t peers, std::function<void(const PacketData&)> recv_callback); 
     ~NetServer(); 
+    NetServer(NetServer&&); 
+    NetServer& operator = (NetServer&&); 
+
+
     void SendPacketTo(const PacketData& packet, const std::size_t client_hash, const int channel, bool reliable = false); 
     void BroadcastPacket(const PacketData& packet, int channel, bool reliable = false); 
     void BroadcastPacketAllExcept(const PacketData& packet, const int channel, const std::size_t client_hash, bool reliable);

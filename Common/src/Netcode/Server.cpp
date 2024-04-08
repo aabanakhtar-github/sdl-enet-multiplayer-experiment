@@ -1,6 +1,7 @@
 #include "Netcode/Server.h" 
 #include "Netcode/NetUtil.h"
 #include "AppState.h"
+#include <algorithm>
 
 NetServer::NetServer(const std::uint16_t port, const std::size_t peers, std::function<void(const PacketData&)> recv_callback) 
     : m_RecvCallback(recv_callback), m_Server(nullptr), m_Valid(false), m_Clients()
@@ -13,7 +14,7 @@ NetServer::NetServer(const std::uint16_t port, const std::size_t peers, std::fun
     if (m_Server == nullptr) 
     {
         GlobalAppState::Get().SetAppState(AppState::AS_FAIL, "Cannot initialize network!");         
-        std::cout << "Couldn't intialize server!" << std::endl;
+        std::cerr << "Couldn't intialize server!" << std::endl;
         m_Valid = false;  
         return;
     }
@@ -23,6 +24,25 @@ NetServer::NetServer(const std::uint16_t port, const std::size_t peers, std::fun
     enet_address_get_host_ip(&addr, ip_buffer, 128); 
 
     std::cout << "Server created successfully on ip: " << ip_buffer <<  " and on port " << port << "!" << std::endl; 
+}
+
+NetServer::NetServer(NetServer&& other)
+{
+    std::swap(m_RecvCallback, other.m_RecvCallback); 
+    std::swap(m_Server, other.m_Server); 
+    std::swap(m_Valid, other.m_Valid); 
+    std::swap(m_Clients, other.m_Clients); 
+    std::swap(m_UsedUsernames, other.m_UsedUsernames); 
+}
+
+NetServer& NetServer::operator = (NetServer&& other)
+{
+    std::swap(m_RecvCallback, other.m_RecvCallback); 
+    std::swap(m_Server, other.m_Server); 
+    std::swap(m_Valid, other.m_Valid); 
+    std::swap(m_Clients, other.m_Clients); 
+    std::swap(m_UsedUsernames, other.m_UsedUsernames);   
+    return *this; 
 }
 
 NetServer::~NetServer()

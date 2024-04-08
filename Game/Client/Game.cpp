@@ -66,11 +66,13 @@ quit:
         {
             GlobalAppState::Get().SetAppState(AppState::AS_LOOP);
         }   
+
     }
 
     void Game::Loop()
     {
         ECS::SystemManager::Get().UpdateSystems(0.166667f, m_GameScenes[0]); 
+        std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000.0/60.0))) ;
     }
 
     void Game::Quit() 

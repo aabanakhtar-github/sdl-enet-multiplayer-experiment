@@ -20,7 +20,7 @@ class NetClient
     NetClient(const NetClient&) = delete; 
     NetClient& operator = (const NetClient&) = delete; 
 public: 
-    explicit NetClient() = default; 
+    explicit NetClient() : m_Valid(false) {} 
     explicit NetClient(std::function<void(const PacketData&)> recv_callback); 
     NetClient(NetClient&&);
     NetClient& operator = (NetClient&&); 

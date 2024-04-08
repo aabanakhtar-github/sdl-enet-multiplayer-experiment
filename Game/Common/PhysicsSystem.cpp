@@ -17,7 +17,7 @@ void PhysicsSystem::Update(ECS::Scene& scene, float delta)
 
 		component.Velocity += component.Acceleration;
 
-		component.BoundingBox.x += component.Velocity.X * delta; 
+		component.BoundingBox.x += component.Velocity.X; 
 		for (auto other : physics_bodies.GetEntities())
 		{
 			if (ID == other) continue;
@@ -37,7 +37,7 @@ void PhysicsSystem::Update(ECS::Scene& scene, float delta)
 			}
 		}	
 		
-		component.BoundingBox.y += component.Velocity.Y * delta; 
+		component.BoundingBox.y += component.Velocity.Y; 
 		for (auto other : physics_bodies.GetEntities())
 		{
 			if (ID == other) continue;
