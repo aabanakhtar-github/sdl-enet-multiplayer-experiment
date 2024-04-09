@@ -95,8 +95,8 @@ void ClientEventSystem::Update(ECS::Scene& scene, float delta)
 
 void ClientEventSystem::Update(ECS::Scene& scene, float delta) 
 {
-    m_EventHandler.Update(); 
-    
+    EventHandler::Get().Update(); 
+
     // Predict Client Movement
     PredictClientState(); 
     // Interp other members 
@@ -112,10 +112,17 @@ void ClientEventSystem::OnRecievePacket(const PacketData& packet)
         break; 
 
     case PT_HANDSHAKE_RESULT:
-        // do stuff based on whether it's rejected or accepted (client ids)
-        
-        break; 
+    {    // do stuff based on whether it's rejected or accepted (client ids)
+        auto payload = PayloadFromString<HandshakeAcceptRejectPayload>(packet.Data);
+        if (payload.Accepted)      
+        {
+        } 
+        else 
+        {   
 
+        }
+        break; 
+    }
     case PT_GAME_UPDATE: 
         // resync / reconcile / interpolate
         ReconcileWithServer(); 

@@ -18,7 +18,7 @@ public:
 private:
     void OnRecievePacket(const PacketData& packet); 
     void SendHandshakeChallenge(); 
-    bool VerifyHandshakeChallenge(); 
+    bool VerifyHandshakeChallenge(const std::uint32_t result) const; 
     void FilterSilliness();
     void SendHandshakeAcceptReject(bool accept_reject);
     void SendWorldState(); 

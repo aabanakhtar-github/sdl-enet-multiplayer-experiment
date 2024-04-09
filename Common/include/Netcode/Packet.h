@@ -81,10 +81,10 @@ struct ServerUpdatePayload
 }; 
 
 template<typename T> 
-inline std::string PayloadToString(const T& payload); 
+inline std::string PayloadToString(const T& payload){ return{}; }; 
 
 template<typename T> 
-inline std::string PayloadString(const T& payload); 
+inline T PayloadFromString(const std::string& payload){ return{}; }
 
 inline std::istream& operator >> (std::istream& in, PacketType& type) 
 {
