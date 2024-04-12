@@ -18,82 +18,80 @@ enum PacketType
     PT_CONNECT_UPDATE, 
     PT_DISCONNECT_UPDATE,
     PT_HANDSHAKE, 
-    PT_HANDSHAKE_RESULT
+    PT_HANDSHAKE_RESULT,
+    PT_INVALID
 };
 
 struct ClientInfo
 {
-    std::string Username; 
-    std::uint32_t ID = -1; 
-    std::uint32_t LastProcessedInputID; 
-    Vector2 Position;
+    int ID = -1; 
+    std::size_t Hash; 
+    int LastProcessedInputID = 0; 
+    Vector2 Position = { 0, 0 };
 }; 
+
+#define MAKE_VERSION(a, b) (a << 4) | (b)
 
 struct PacketData
 {
-    std::uint8_t ProtocolVersion = (1 << 4) | (1); 
-    std::uint32_t Checksum; 
-    std::uint32_t ID;
-    PacketType Type; 
-    std::uint32_t DataLength;
+    std::int8_t ProtocolVersion = MAKE_VERSION(1, 0); 
+    int Checksum = -1; 
+    int ID = -1;
+    PacketType Type = PT_INVALID; 
+    int DataLength = 0;
     std::string Data; 
 };
 
 // Client side only
 struct ConnectDisconnectPayload 
 {
-    std::uint32_t ID; 
-    std::uint32_t UsernameLength; 
+    int ID = -1; 
+    int UsernameLength = 0; 
     std::string UsernameRequest; 
 }; 
 
 struct HandshakeChallengePayload 
 {
-    std::uint32_t ServerSalt; 
-    std::uint32_t ClientSalt; 
+    int ServerSalt = 0; 
+    int ClientSalt = 0; 
 }; 
 
 // Client side only
 struct HandshakeResponsePayload 
 {
-    std::uint32_t ChallengeResponse; 
+    int ChallengeResponse = 0; 
 }; 
 
 struct HandshakeAcceptRejectPayload 
 {
-    std::uint8_t Accepted; 
-    std::uint32_t NewID; 
+    bool Accepted = false; 
+    int NewID = -1; 
 }; 
 
 struct ClientUpdatePayload
 {
-    std::uint64_t Salt; 
-    std::uint64_t SequenceNumber; 
+    int Salt; 
+    int SequenceNumber; 
     Vector2 Input; 
 };
 
 struct ServerUpdatePayload 
 {
-    std::uint32_t Salt; 
-    std::uint64_t SequenceNumber; 
-    std::uint32_t ClientsLength; 
+    int Salt; 
+    std::int64_t SequenceNumber = -1; 
+    int ClientsLength = 0; 
     std::vector<ClientInfo> ClientStates; 
 }; 
 
 template<typename T> 
-inline std::string PayloadToString(const T& payload){ return{}; }; 
-
+std::string PayloadToString(const T& payload); 
 template<typename T> 
-inline T PayloadFromString(const std::string& payload){ return{}; }
+T PayloadFromString(const std::string& payload); 
 
-inline std::istream& operator >> (std::istream& in, PacketType& type) 
-{
-    int val; 
-    in >> val; 
-    type = static_cast<PacketType>(val);
-    return in; 
-}
+std::istream& operator >> (std::istream& in, PacketType& type) ;
 ENetPacket* PacketDataToNetPacket(const PacketData& packet, ENetPacketFlag flags); 
 PacketData PacketDataFromNetPacket(const ENetPacket* packet); 
 
 #endif // PACKET_H
+
+

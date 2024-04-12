@@ -2,6 +2,52 @@
 #include <sstream> 
 #include <iostream> 
 
+template<> 
+HandshakeChallengePayload PayloadFromString<HandshakeChallengePayload>(const std::string& data)
+{
+    HandshakeChallengePayload return_value{ }; 
+    std::istringstream ss(data); 
+
+    ss >> return_value.ServerSalt; 
+    ss >> return_value.ClientSalt;
+    return return_value; 
+}
+
+template<> 
+std::string PayloadToString<HandshakeChallengePayload>(const HandshakeChallengePayload& data)
+{
+    std::ostringstream ss; 
+    ss << data.ServerSalt << " "; 
+    ss << data.ClientSalt << " "; 
+    return ss.str(); 
+}
+
+template<>
+HandshakeResponsePayload PayloadFromString<HandshakeResponsePayload>(const std::string& data)
+{
+    HandshakeResponsePayload return_value;
+    std::string data_copy = data;
+
+    std::erase_if(data_copy, isspace); 
+    return_value.ChallengeResponse = std::stoi(data_copy);
+    
+    return return_value;
+}
+
+template<> 
+std::string PayloadToString<HandshakeResponsePayload>(const HandshakeResponsePayload& data) 
+{
+    return std::to_string(data.ChallengeResponse); 
+}
+
+std::istream& operator >> (std::istream& in, PacketType& type)
+{
+    int val; 
+    in >> val; 
+    type = static_cast<PacketType>(val);
+    return in; 
+}
+
 ENetPacket* PacketDataToNetPacket(const PacketData& packet, ENetPacketFlag flags)
 {
     std::stringstream ss(std::ios_base::out);
@@ -23,26 +69,13 @@ PacketData PacketDataFromNetPacket(const ENetPacket* packet)
 
     PacketData return_value{};  
     std::string data((char*)packet->data, packet->dataLength); 
-    std::istringstream data_stream(data); 
+    std::istringstream ss(data); 
 
-    data_stream >> return_value.ID; 
-    data_stream >> return_value.Type; 
-    data_stream >> return_value.DataLength;
-    data_stream.get();  
-    std::getline(data_stream, return_value.Data, static_cast<char>(0)); 
-    /*
-    data_stream.get(); 
-
-    char* buffer = new char[return_value.DataLength]; 
-    for (std::size_t i = 0; i < return_value.DataLength; ++i)
-    {
-        buffer[i] = data_stream.get(); 
-    }
-
-    buffer[return_value.DataLength-1] = 0;
-    return_value.Data = std::string(buffer); 
-    delete[] buffer; 
-    */
+    ss >> return_value.ID; 
+    ss >> return_value.Type; 
+    ss >> return_value.DataLength;
+    ss.get();  
+    std::getline(ss, return_value.Data, static_cast<char>(0)); 
 
     return return_value; 
 }

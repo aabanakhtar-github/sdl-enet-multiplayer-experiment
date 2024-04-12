@@ -1,5 +1,5 @@
-#ifndef MATH_H
-#define MATH_H
+#ifndef MATH_FUNCS_H
+#define MATH_FUNCS_H
 
 #include "Window.h" 
 #include <type_traits> 
@@ -55,4 +55,4 @@ inline int Random(int min, int max)
 	return distribution(engine); 
 }
 
-#endif
+#endif // MATH_FUNCS_H

@@ -43,7 +43,6 @@ void ServerEventSystem::Update(ECS::Scene& scene, float delta)
     if (m_NetServer.GetValid())
     {
         m_NetServer.UpdateNetwork(); 
-        m_NetServer.BroadcastPacket(output_packet, 0, false); 
     } 
 
     scene.GetComponent<PhysicsBodyComponent>(0).Velocity.Y = 15 * up * delta; 
@@ -54,12 +53,6 @@ void ServerEventSystem::Update(ECS::Scene& scene, float delta)
 
 void ServerEventSystem::OnRecievePacket(const PacketData& packet) 
 {
-    std::cout << packet.Data << std::endl; 
-    std::istringstream output_ss(packet.Data); 
-    output_ss >> down; 
-    output_ss >> up; 
-    std::cout << down << up << std::endl; 
-    std::cout << "=========" << std::endl; 
 }
 
 ServerEventSystem::~ServerEventSystem() 

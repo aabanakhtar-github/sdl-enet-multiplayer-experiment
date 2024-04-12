@@ -105,11 +105,37 @@ void NetClient::UpdateNetwork(float blocking_time, bool disconnection)
         case ENET_EVENT_TYPE_RECEIVE:
         {
             PacketData parsed_packet = PacketDataFromNetPacket(event.packet); 
-            if (!disconnection) 
+                
+            switch(parsed_packet.Type)
             {
-                m_RecvCallback(parsed_packet); 
-            }
+            case PT_HANDSHAKE_RESULT:
+                break;
 
+            case PT_HANDSHAKE:
+            {
+                std::cout << parsed_packet.Data << std::endl;
+                auto payload = PayloadFromString<HandshakeChallengePayload>(parsed_packet.Data); 
+                int response = payload.ClientSalt ^ payload.ServerSalt; 
+                
+                HandshakeResponsePayload response_payload; 
+                response_payload.ChallengeResponse = response; 
+                
+                PacketData response_packet; 
+                response_packet.Type = PT_HANDSHAKE_RESULT; 
+                response_packet.Data = PayloadToString<HandshakeResponsePayload>(response_payload);  
+                response_packet.DataLength = response_packet.Data.size() + 1;
+               
+                SendPacket(response_packet, 0, true); 
+                break;
+            } 
+            default:    
+                if (!disconnection) 
+                {
+                    m_RecvCallback(parsed_packet); 
+                }
+                break;
+            }
+            
             enet_packet_destroy(event.packet); 
             break; 
         }

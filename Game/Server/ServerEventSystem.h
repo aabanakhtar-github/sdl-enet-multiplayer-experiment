@@ -17,10 +17,7 @@ public:
     void SetupServer(const std::uint16_t port); 
 private:
     void OnRecievePacket(const PacketData& packet); 
-    void SendHandshakeChallenge(); 
-    bool VerifyHandshakeChallenge(const std::uint32_t result) const; 
     void FilterSilliness();
-    void SendHandshakeAcceptReject(bool accept_reject);
     void SendWorldState(); 
     void FillClient(std::uint32_t ID); 
 private:
