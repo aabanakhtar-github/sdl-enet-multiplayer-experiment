@@ -45,9 +45,9 @@ public:
 private:  
     void RegisterConnection(ENetPeer* peer);
 
-    void SendHandshakeAccepted(const std::size_t ID, bool accepted);
+    void SendHandshakeAccepted(const std::size_t ID, const bool accepted);
     void SendHandshakeChallenge(const std::size_t hash); 
-    bool VerifyHandshakeChallenge(const std::size_t hash, const std::uint32_t result) const; 
+    bool VerifyHandshakeChallenge(const std::size_t hash, const int result) const; 
 private: 
     std::function<void(const PacketData&)> m_RecvCallback; 
     ENetHost* m_Server; 

@@ -37,6 +37,7 @@ namespace Server
                     std::cerr << "Error List: " << error << std::endl; 
                 }                    
 
+                goto quit; 
                 break;
 
             case AppState::AS_LOOP:

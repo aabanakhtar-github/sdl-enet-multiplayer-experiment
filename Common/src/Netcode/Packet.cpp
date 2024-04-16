@@ -7,7 +7,6 @@ HandshakeChallengePayload PayloadFromString<HandshakeChallengePayload>(const std
 {
     HandshakeChallengePayload return_value{ }; 
     std::istringstream ss(data); 
-
     ss >> return_value.ServerSalt; 
     ss >> return_value.ClientSalt;
     return return_value; 
@@ -27,10 +26,9 @@ HandshakeResponsePayload PayloadFromString<HandshakeResponsePayload>(const std::
 {
     HandshakeResponsePayload return_value;
     std::string data_copy = data;
-
     std::erase_if(data_copy, isspace); 
-    return_value.ChallengeResponse = std::stoi(data_copy);
     
+    return_value.ChallengeResponse = std::stoi(data_copy);
     return return_value;
 }
 
@@ -38,6 +36,27 @@ template<>
 std::string PayloadToString<HandshakeResponsePayload>(const HandshakeResponsePayload& data) 
 {
     return std::to_string(data.ChallengeResponse); 
+}
+
+template<> 
+HandshakeAcceptRejectPayload PayloadFromString<HandshakeAcceptRejectPayload>(const std::string& data)
+{
+    HandshakeAcceptRejectPayload return_value;
+    std::istringstream ss(data); 
+    ss >> return_value.Accepted; 
+    ss >> return_value.NewID; 
+
+    return return_value; 
+}
+
+template<> 
+std::string PayloadToString<HandshakeAcceptRejectPayload>(const HandshakeAcceptRejectPayload& data)
+{
+    std::ostringstream ss; 
+    ss << data.Accepted << " ";
+    ss << data.NewID << " "; 
+    
+    return ss.str();  
 }
 
 std::istream& operator >> (std::istream& in, PacketType& type)

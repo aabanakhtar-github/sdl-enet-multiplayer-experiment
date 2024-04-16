@@ -39,6 +39,7 @@ NetServer::NetServer(NetServer&& other)
     std::swap(m_Valid, other.m_Valid); 
     std::swap(m_Clients, other.m_Clients); 
     std::swap(m_UsedUsernames, other.m_UsedUsernames); 
+    std::swap(m_ID_Queue, other.m_ID_Queue);  
 }
 
 NetServer& NetServer::operator = (NetServer&& other)
@@ -47,7 +48,8 @@ NetServer& NetServer::operator = (NetServer&& other)
     std::swap(m_Server, other.m_Server); 
     std::swap(m_Valid, other.m_Valid); 
     std::swap(m_Clients, other.m_Clients); 
-    std::swap(m_UsedUsernames, other.m_UsedUsernames);   
+    std::swap(m_UsedUsernames, other.m_UsedUsernames);
+    std::swap(m_ID_Queue, other.m_ID_Queue);  
     return *this; 
 }
 
@@ -88,6 +90,8 @@ void NetServer::SendHandshakeChallenge(const std::size_t hash)
         HandshakeChallengePayload payload;  
         int server_salt = Random(1, high); 
         int client_salt = Random(1, high);  
+        it->second.ServerSalt = server_salt; 
+        it->second.ClientSalt = client_salt; 
         payload.ClientSalt = client_salt; 
         payload.ServerSalt = server_salt; 
 
@@ -101,7 +105,7 @@ void NetServer::SendHandshakeChallenge(const std::size_t hash)
     }
 }
 
-bool NetServer::VerifyHandshakeChallenge(const std::size_t hash, const std::uint32_t result) const
+bool NetServer::VerifyHandshakeChallenge(const std::size_t hash, const int result) const
 {
     auto it = m_PendingConnections.find(hash); 
     if (it != m_PendingConnections.end())
@@ -138,6 +142,7 @@ void NetServer::SendPacketTo(const PacketData& packet, const std::size_t ID, con
 void NetServer::UpdateNetwork(float block_time) 
 {
    ENetEvent event; 
+   
    while (enet_host_service(m_Server, &event, static_cast<int>(block_time * 1000.0f) > 0))
    {
         switch (event.type) 
@@ -182,7 +187,8 @@ void NetServer::UpdateNetwork(float block_time)
                     client_info.Peer = event.peer;
                     client_info.Hash = client_hash; 
 
-                    m_Clients.emplace(client_ID, std::move(client_info)); 
+                    m_Clients.emplace(client_ID, std::move(client_info));
+                    m_PendingConnections.erase(it);  
                     SendHandshakeAccepted(client_ID, true); 
                 }
                 else 
@@ -190,7 +196,7 @@ void NetServer::UpdateNetwork(float block_time)
                     ENetAddress this_address = event.peer->address; 
                     std::size_t hash = std::hash<ENetAddress>()(this_address); 
                     
-                    auto it = std::find(m_PendingConnections.begin(), m_PendingConnections.end(), hash); 
+                    auto it = m_PendingConnections.find(hash);  
                     if (it != m_PendingConnections.end())
                     {
                         enet_peer_reset(it->second.Peer);
@@ -199,6 +205,7 @@ void NetServer::UpdateNetwork(float block_time)
 
                     SendHandshakeAccepted(-1, false); 
                 }
+                break;
             }
             default: 
                 m_RecvCallback(parsed_packet); 
@@ -219,7 +226,7 @@ void NetServer::UpdateNetwork(float block_time)
    }
 }
 
-void NetServer::SendHandshakeAccepted(const std::size_t ID, bool accepted)
+void NetServer::SendHandshakeAccepted(const std::size_t ID, const bool accepted)
 {
     HandshakeAcceptRejectPayload payload;
     PacketData packet; 

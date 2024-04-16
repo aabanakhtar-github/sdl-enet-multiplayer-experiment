@@ -15,7 +15,7 @@ void ClientEventSystem::Init(ECS::Scene& pscene)
 // TODO refactor into reusable function that allows game to persist across multiple servers
     m_NetClient.Connect("127.0.0.1", 7777, 3.0); 
 
-    EventHandler::Get().BindEvent(SDL_KEYDOWN, [&](SDL_Event& e)
+    EventHandler::Get().BindEvent(SDL_KEYDOWN, [&](SDL_Event& e) -> void
     { 
         switch (e.key.keysym.sym) 
         {
