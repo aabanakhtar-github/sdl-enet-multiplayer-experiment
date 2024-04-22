@@ -44,6 +44,10 @@ NetServer::NetServer(NetServer&& other)
 
 NetServer& NetServer::operator = (NetServer&& other)
 {
+    if (m_Server != nullptr) 
+    {
+        enet_host_destroy(m_Server);
+    }
     std::swap(m_RecvCallback, other.m_RecvCallback); 
     std::swap(m_Server, other.m_Server); 
     std::swap(m_Valid, other.m_Valid); 
