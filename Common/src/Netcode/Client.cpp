@@ -3,7 +3,7 @@
 #include <iostream> 
 
 NetClient::NetClient(std::function<void(const PacketData&)> recv_callback)
-    : m_RecvCallback(recv_callback), m_Client(nullptr), m_Server{ nullptr, {} }, m_Username(), m_ID(-1), m_Valid(false), m_Connected(false)
+    : m_RecvCallback(recv_callback), m_Client(nullptr), m_Server{ nullptr, {} }, m_Username(), m_Valid(false), m_Connected(false)
 {
     m_Client = enet_host_create(nullptr, 1, 1, 0, 0); 
     if (m_Client == nullptr) 
@@ -25,6 +25,8 @@ NetClient::NetClient(NetClient&& other)
     std::swap(m_ID, other.m_ID); 
     std::swap(m_Valid, other.m_Valid); 
     std::swap(m_Connected, other.m_Connected); 
+    std::swap(m_ClientSalt, other.m_ClientSalt);
+    std::swap(m_ServerSalt, other.m_ServerSalt);
 }
 
 NetClient& NetClient::operator = (NetClient&& other) 
@@ -36,6 +38,8 @@ NetClient& NetClient::operator = (NetClient&& other)
     std::swap(m_ID, other.m_ID); 
     std::swap(m_Valid, other.m_Valid); 
     std::swap(m_Connected, other.m_Connected); 
+    std::swap(m_ClientSalt, other.m_ClientSalt);
+    std::swap(m_ServerSalt, other.m_ServerSalt);
     return *this; 
 }
 
@@ -85,8 +89,9 @@ void NetClient::Disconnect(float timeout)
     UpdateNetwork(1.0); 
 }
 
-void NetClient::SendPacket(const PacketData& packet, int channel, bool reliable)
+void NetClient::SendPacket(PacketData packet, int channel, bool reliable)
 {
+    packet.Salt = m_ClientSalt ^ m_ServerSalt; 
     ENetPacket* netpacket = PacketDataToNetPacket(packet, reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNSEQUENCED); 
     enet_peer_send(m_Server.Server, channel, netpacket); 
 }
@@ -108,9 +113,6 @@ void NetClient::UpdateNetwork(float blocking_time, bool disconnection)
                 
             switch(parsed_packet.Type)
             {
-            case PT_HANDSHAKE_RESULT:
-                break;
-
             case PT_HANDSHAKE:
             {
                 std::cout << parsed_packet.Data << std::endl;
@@ -124,12 +126,30 @@ void NetClient::UpdateNetwork(float blocking_time, bool disconnection)
                 response_packet.Type = PT_HANDSHAKE_RESULT; 
                 response_packet.Data = PayloadToString<HandshakeResponsePayload>(response_payload);  
                 response_packet.DataLength = response_packet.Data.size() + 1;
-               
+                
+                m_ServerSalt = payload.ServerSalt; 
+                m_ClientSalt = payload.ClientSalt;
+
                 SendPacket(response_packet, 0, true); 
                 break;
             } 
+            case PT_HANDSHAKE_RESULT: 
+            {
+                auto payload = PayloadFromString<HandshakeAcceptRejectPayload>(parsed_packet.Data);
+                if (payload.Accepted)
+                {
+                    m_ID = payload.NewID;
+                } 
+                else 
+                {
+                    // reset this client and invalidate state
+                    enet_peer_reset(m_Server.Server);
+                    m_Connected = false; 
+                }
+                break; 
+            }
             default:    
-                if (!disconnection) 
+                if (!disconnection && parsed_packet.Salt == (m_ClientSalt ^ m_ServerSalt)) 
                 {
                     m_RecvCallback(parsed_packet); 
                 }

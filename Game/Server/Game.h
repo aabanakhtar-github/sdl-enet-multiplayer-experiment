@@ -22,6 +22,7 @@ namespace Server
         void Quit(); 
 
     private: 
+        static constexpr float m_TargetFPS = 60.f;
         static constexpr bool m_RenderGraphics = false; 
         ECS::Scene m_Arena;  
         std::size_t m_SceneIndex;

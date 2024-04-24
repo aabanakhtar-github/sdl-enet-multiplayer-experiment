@@ -36,8 +36,8 @@ public:
     NetServer& operator = (NetServer&&); 
 
     void SendPacketToPending(const PacketData& packet, const std::size_t hash, const int channel, bool reliable = false);
-    void SendPacketTo(const PacketData& packet, const std::size_t ID, const int channel, bool reliable = false); 
-    void BroadcastPacket(const PacketData& packet, const int channel, bool reliable = false); 
+    void SendPacketTo(PacketData packet, const std::size_t ID, const int channel, bool reliable = false); 
+    void BroadcastPacket(PacketData packet, const int channel, bool reliable = false); 
     void BroadcastPacketAllExcept(const PacketData& packet, const int channel, const std::size_t ID, bool reliable);
     void UpdateNetwork(float block_time = 0.0f); 
 

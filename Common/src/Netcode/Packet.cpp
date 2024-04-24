@@ -70,7 +70,8 @@ std::istream& operator >> (std::istream& in, PacketType& type)
 ENetPacket* PacketDataToNetPacket(const PacketData& packet, ENetPacketFlag flags)
 {
     std::stringstream ss(std::ios_base::out);
-    ss << packet.ID << " "; 
+    ss << packet.ID << " ";
+    ss << packet.Salt << " ";  
     ss << packet.Type << " "; 
     ss << packet.DataLength << " ";  
     ss << packet.Data; 
@@ -91,6 +92,7 @@ PacketData PacketDataFromNetPacket(const ENetPacket* packet)
     std::istringstream ss(data); 
 
     ss >> return_value.ID; 
+    ss >> return_value.Salt;
     ss >> return_value.Type; 
     ss >> return_value.DataLength;
     ss.get();  

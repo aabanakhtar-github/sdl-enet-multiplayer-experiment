@@ -1,8 +1,8 @@
 #include "Game.h"
 #include "Util.h" 
 #include "CreateScenes.h"
+#include "Timer.h"
 #include <chrono> 
-#include <thread> 
 
 using namespace std::chrono_literals; 
 
@@ -79,8 +79,16 @@ quit:
 
     void Game::Loop() 
     {
-        ECS::SystemManager::Get().UpdateSystems(0.16666667, m_Arena); 
-        std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000/60))); 
+        static float deltaTime = 0.0f; 
+        
+        Timer timer;
+        ECS::SystemManager::Get().UpdateSystems(deltaTime, m_Arena); 
+
+        deltaTime = timer.GetDelta();
+        if (deltaTime < 1.0 / m_TargetFPS)
+            timer.Block(1.0 / m_TargetFPS - deltaTime); 
+
+        std::cout << timer.GetDelta() << "s" << std::endl;
     }
 
 }

@@ -29,7 +29,7 @@ public:
     void UpdateNetwork(float block_time = 0.0, bool disconnection = false);
     void Connect(const std::string& server_addr, const std::uint16_t port, float timeout); 
     void Disconnect(float timeout);
-    void SendPacket(const PacketData& packet, int channel, bool reliable = false); 
+    void SendPacket(PacketData packet, int channel, bool reliable = false); 
 
     bool GetConnected() const { return m_Valid && m_Connected; } 
     bool GetValid() const { return m_Valid; }
@@ -38,9 +38,11 @@ private:
     ENetHost* m_Client; 
     ServerData m_Server; 
     std::string m_Username;
-    std::size_t m_ID; 
     bool m_Valid; 
     bool m_Connected; 
+    int m_ID = -1;  
+    int m_ServerSalt = -1; 
+    int m_ClientSalt = -1; 
 };
 
 

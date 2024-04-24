@@ -59,18 +59,6 @@ NetServer::~NetServer()
     m_Server = nullptr; 
 }
 
-void NetServer::BroadcastPacketAllExcept(const PacketData& packet, const int channel, const std::size_t client_hash, bool reliable) 
-{
-    ENetPacket* net_packet = PacketDataToNetPacket(packet, reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNSEQUENCED); 
-    for (auto&[client, peer] : m_Clients) 
-    {
-        if (client_hash != client) 
-        {
-            enet_peer_send(peer.Peer, channel, net_packet); 
-        }
-    }
-}
-
 void NetServer::RegisterConnection(ENetPeer* peer) 
 {
     ServerClientInfo peer_data; 
@@ -129,13 +117,39 @@ void NetServer::SendPacketToPending(const PacketData& packet, const std::size_t 
     }  
 }
 
-void NetServer::SendPacketTo(const PacketData& packet, const std::size_t ID, const int channel, bool reliable)
+void NetServer::SendPacketTo(PacketData packet, const std::size_t ID, const int channel, bool reliable)
 {
     auto it = m_Clients.find(ID); 
     if (it != m_Clients.end())
     {
-        ENetPacket* net_packet = PacketDataToNetPacket(packet, reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT);  
+        packet.Salt = it->second.ServerSalt ^ it->second.ClientSalt;
+        ENetPacket* net_packet = PacketDataToNetPacket(packet, reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT);   
         enet_peer_send(it->second.Peer, channel, net_packet); 
+    }
+}
+
+void NetServer::BroadcastPacket(PacketData packet, int channel, bool reliable)
+{
+    for (auto&[ID, client] : m_Clients)
+    {
+        PacketData copy = packet; 
+        copy.Salt = client.ServerSalt ^ client.ClientSalt; 
+        ENetPacket* net_packet = PacketDataToNetPacket(packet, reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT); 
+        enet_peer_send(client.Peer, channel, net_packet);         
+    }
+}
+
+// TODO: impl w/ salt
+void NetServer::BroadcastPacketAllExcept(const PacketData& packet, const int channel, const std::size_t client_hash, bool reliable) 
+{
+    abort();
+    ENetPacket* net_packet = PacketDataToNetPacket(packet, reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNSEQUENCED); 
+    for (auto&[client, peer] : m_Clients) 
+    {
+        if (client_hash != client) 
+        {
+            enet_peer_send(peer.Peer, channel, net_packet); 
+        }
     }
 }
 
@@ -207,19 +221,36 @@ void NetServer::UpdateNetwork(float block_time)
                 }
                 break;
             }
-            default: 
-                m_RecvCallback(parsed_packet); 
+            default:
+            {
+                auto it = m_Clients.find(parsed_packet.ID);
+                if (it != m_Clients.end() && (it->second.ClientSalt ^ it->second.ServerSalt) == parsed_packet.Salt)
+                {
+                    m_RecvCallback(parsed_packet); 
+                }
+                else
+                {
+                    std::cout << "Recieved a packet from unknown source!" << std::endl; 
+                    // disconnect this client 
+                    // TODO: research if it works 
+                    enet_peer_reset(event.peer);
+                }
                 break;    
+            } 
             } 
             enet_packet_destroy(event.packet); 
             break;  
         }
         case ENET_EVENT_TYPE_DISCONNECT:
             std::cout << "A client disconnected!" << std::endl; 
-            m_ID_Queue.push(*((std::size_t*)event.peer->data)); 
+            
+            if (event.peer->data != nullptr) 
+            {
+                m_ID_Queue.push(*((std::size_t*)event.peer->data)); 
+            }
+
             delete (std::size_t*)event.peer->data; 
             event.peer->data = nullptr;              
-            
             enet_peer_reset(event.peer);
             break; 
         }
@@ -238,11 +269,7 @@ void NetServer::SendHandshakeAccepted(const std::size_t ID, const bool accepted)
     packet.Data = PayloadToString<HandshakeAcceptRejectPayload>(payload); 
     packet.DataLength = packet.Data.size() + 1; 
 
-    SendPacketTo(packet, 0, true);  
+    std::cout << "Establishing connection with Client, ID: " << payload.NewID << std::endl; 
+    this->SendPacketTo(packet, ID, 0, true); 
 }
 
-void NetServer::BroadcastPacket(const PacketData& packet, int channel, bool reliable)
-{
-    ENetPacket* net_packet = PacketDataToNetPacket(packet, reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNSEQUENCED); 
-    enet_host_broadcast(m_Server, channel, net_packet); 
-}

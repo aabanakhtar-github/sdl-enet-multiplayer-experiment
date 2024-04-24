@@ -34,8 +34,8 @@ struct ClientInfo
 
 struct PacketData
 {
+    int Salt = 0;
     std::int8_t ProtocolVersion = MAKE_VERSION(1, 0); 
-    int Checksum = -1; 
     int ID = -1;
     PacketType Type = PT_INVALID; 
     int DataLength = 0;
@@ -70,14 +70,12 @@ struct HandshakeAcceptRejectPayload
 
 struct ClientUpdatePayload
 {
-    int Salt; 
     int SequenceNumber; 
     Vector2 Input; 
 };
 
 struct ServerUpdatePayload 
 {
-    int Salt; 
     std::int64_t SequenceNumber = -1; 
     int ClientsLength = 0; 
     std::vector<ClientInfo> ClientStates; 
