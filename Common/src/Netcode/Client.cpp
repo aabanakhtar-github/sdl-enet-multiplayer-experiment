@@ -31,6 +31,10 @@ NetClient::NetClient(NetClient&& other)
 
 NetClient& NetClient::operator = (NetClient&& other) 
 {
+    if (m_Client != nullptr) 
+    {
+        enet_host_destroy(m_Client); 
+    }
     std::swap(m_RecvCallback, other.m_RecvCallback);
     std::swap(m_Client, other.m_Client); 
     std::swap(m_Server, other.m_Server); 

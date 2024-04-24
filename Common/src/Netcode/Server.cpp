@@ -44,6 +44,10 @@ NetServer::NetServer(NetServer&& other)
 
 NetServer& NetServer::operator = (NetServer&& other)
 {
+    if (m_Server != nullptr) 
+    {
+        enet_host_destroy(m_Server);
+    }
     std::swap(m_RecvCallback, other.m_RecvCallback); 
     std::swap(m_Server, other.m_Server); 
     std::swap(m_Valid, other.m_Valid); 
@@ -273,3 +277,8 @@ void NetServer::SendHandshakeAccepted(const std::size_t ID, const bool accepted)
     this->SendPacketTo(packet, ID, 0, true); 
 }
 
+void NetServer::BroadcastPacket(const PacketData& packet, int channel, bool reliable)
+{
+    ENetPacket* net_packet = PacketDataToNetPacket(packet, reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNSEQUENCED); 
+    enet_host_broadcast(m_Server, channel, net_packet); 
+}
