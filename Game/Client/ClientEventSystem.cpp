@@ -74,7 +74,7 @@ void ClientEventSystem::Update(ECS::Scene& scene, float delta)
         ClientUpdatePayload payload; 
         payload.InputBits = inputs;
         payload.RequestID = m_InputSequenceNumber++; 
-        packet.Data = PayloadFromString<ClientUpdatePayload>(payload); 
+        //packet.Data = PayloadFromString<ClientUpdatePayload>(payload); 
         packet.DataLength = packet.Data.size() + 1;
     }
 }
@@ -108,6 +108,7 @@ std::uint16_t ClientEventSystem::GetKeyboardBits()
     bits |= (keyboard_state[SDL_SCANCODE_A]) << 14; 
     bits |= (keyboard_state[SDL_SCANCODE_S]) << 13; 
     bits |= (keyboard_state[SDL_SCANCODE_D]) << 12; 
+    return bits; 
 }
 
 void ClientEventSystem::InterpolateEntities()
