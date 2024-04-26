@@ -11,7 +11,7 @@ namespace Server
     
     Game::Game() 
         : m_Arena(), m_GraphicsSystem(new GraphicsSystem()), 
-            m_PhysicsSystem(new PhysicsSystem()), m_ServerEventSystem(new ServerEventSystem())
+            m_PhysicsSystem(new PhysicsSystem()), m_ServerEventSystem(new ServerEventSystem(m_Arena))
     {
         InitializeLibraries(); 
     }
@@ -88,7 +88,7 @@ quit:
         if (deltaTime < 1.0 / m_TargetFPS)
             timer.Block(1.0 / m_TargetFPS - deltaTime); 
 
-        std::cout << timer.GetDelta() << "s" << std::endl;
+        deltaTime = timer.GetDelta();
     }
 
 }

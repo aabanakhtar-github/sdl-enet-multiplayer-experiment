@@ -25,6 +25,7 @@ namespace Client
         void Quit(); 
 
     private:
+        static constexpr float m_TargetFPS = 60.0f; 
         std::array<ECS::Scene, 1> m_GameScenes; 
         std::size_t m_SceneIndex;
         GraphicsSystem* m_GraphicsSystem; 

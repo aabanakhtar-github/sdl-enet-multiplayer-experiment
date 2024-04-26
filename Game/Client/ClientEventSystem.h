@@ -19,14 +19,15 @@ private:
     void OnRecievePacket(const PacketData& packet);
     void PredictClientState(); 
     void ReconcileWithServer();  
+    std::uint16_t GetKeyboardBits();
     void InterpolateEntities(); 
 private:
     static constexpr float m_NetTickRate = 30.f; 
-    std::uint64_t m_NetworkSequenceNumber = 0; 
+    std::uint64_t m_InputSequenceNumber = 0; 
     EventHandler m_EventHandler; 
     NetClient m_NetClient;
     std::array<ClientInfo, 10> m_Players; 
-    std::array<std::pair<ClientUpdatePayload, ClientInfo>, 1024> m_RollbackBuffer; 
+    std::array<std::pair<ClientInfo, ClientUpdatePayload>, 1024> m_RollbackBuffer; 
 };
 
 #endif

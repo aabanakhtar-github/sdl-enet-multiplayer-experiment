@@ -10,7 +10,7 @@ void PhysicsSystem::Update(ECS::Scene& scene, float delta)
 	{
 		auto& component = scene.GetComponent<PhysicsBodyComponent>(ID);
 
-		if (component.GravityEnabled)
+		if (component.SimulatesPhysics)
 		{
 			component.Acceleration.Y += kGRAVITY;
 		}	

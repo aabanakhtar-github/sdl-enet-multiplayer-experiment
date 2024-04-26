@@ -95,6 +95,7 @@ void NetClient::Disconnect(float timeout)
 
 void NetClient::SendPacket(PacketData packet, int channel, bool reliable)
 {
+    packet.ID = m_ID;
     packet.Salt = m_ClientSalt ^ m_ServerSalt; 
     ENetPacket* netpacket = PacketDataToNetPacket(packet, reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNSEQUENCED); 
     enet_peer_send(m_Server.Server, channel, netpacket); 

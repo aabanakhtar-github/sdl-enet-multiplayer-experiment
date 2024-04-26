@@ -35,12 +35,11 @@ struct PhysicsBodyComponent : public ECS::Component
 	Rect BoundingBox = {};
 	Vector2 Velocity = {};
 	Vector2 Acceleration = {};	
-	bool GravityEnabled = false;
 	bool SimulatesPhysics = false;
 	
 	friend bool operator == (const PhysicsBodyComponent& a, const PhysicsBodyComponent& b) {
 		return a.BoundingBox == b.BoundingBox && a.Velocity == b.Velocity
-			&& a.Acceleration == b.Acceleration && a.GravityEnabled == b.GravityEnabled && a.SimulatesPhysics == b.SimulatesPhysics;
+			&& a.Acceleration == b.Acceleration && a.SimulatesPhysics == b.SimulatesPhysics;
 	}
 };
 

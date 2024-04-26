@@ -8,7 +8,7 @@
 class ServerEventSystem : public ECS::ISystem 
 {
 public: 
-    explicit ServerEventSystem() = default; 
+    explicit ServerEventSystem(ECS::Scene& scene) : m_Scene(scene), m_NetServer() {}
     ~ServerEventSystem(); 
 
     virtual void Init(ECS::Scene& scene) override; 
@@ -16,16 +16,16 @@ public:
 
     void SetupServer(const std::uint16_t port); 
 private:
-    void OnRecievePacket(const PacketData& packet); 
-    void FilterSilliness();
+    void OnRecievePacket(const PacketData& packet);
+    void OnConnect(std::size_t ID);
+    void OnDisconnect(std::size_t ID);
+
     void SendWorldState(); 
-    void FillClient(std::uint32_t ID); 
 private:
     static constexpr float m_NetTickRate = 30.f;
     std::uint64_t m_NetworkSequenceNumber = 0;
     NetServer m_NetServer;
-    std::array<ClientInfo, 10> m_Clients; 
-    std::array<std::array<ClientInfo, 1024>, 10> PastClientStates; 
+    ECS::Scene& m_Scene; 
 }; 
 
 #endif

@@ -5,12 +5,9 @@
 #include "Components.h"
 
 // TODO: replace with json serialization
-inline void CreateGameLevel(ECS::Scene& scene, bool server = false) 
+
+inline void BuildPlayer(ECS::Scene& scene, ECS::EntityID player)
 {
-    scene.RegisterComponent<TextureComponent>();
-    scene.RegisterComponent<PhysicsBodyComponent>();
-    // 0 
-    auto player = scene.CreateEntity(); 
     scene.AddComponent<TextureComponent>(player) = TextureComponent {
         .SourceRectangle = Rect(0, 0, 100, 100), 
         .TextureName = "foo",
@@ -18,8 +15,28 @@ inline void CreateGameLevel(ECS::Scene& scene, bool server = false)
     }; 
     scene.AddComponent<PhysicsBodyComponent>(player) = PhysicsBodyComponent {
         .BoundingBox = { 0, 0, 50, 50 }, 
+        .SimulatesPhysics = true
+    };
+}
+
+inline void CreateGameLevel(ECS::Scene& scene, bool server = false) 
+{
+    scene.RegisterComponent<TextureComponent>();
+    scene.RegisterComponent<PhysicsBodyComponent>();
+    // 0 
+    auto player = scene.CreateEntity();
+    BuildPlayer(scene, player); 
+    auto floor = scene.CreateEntity(); 
+    scene.AddComponent<TextureComponent>(floor) = TextureComponent {
+        .SourceRectangle = Rect(0, 0, 50, 50), 
+        .TextureName = "foo",
+        .Scale = Rect(0, 0, 700, 700)
+    }; 
+    scene.AddComponent<PhysicsBodyComponent>(floor) = PhysicsBodyComponent {
+        .BoundingBox = { 0, 400, 700, 700 }, 
         .SimulatesPhysics = false
     };
+
 
 }
 

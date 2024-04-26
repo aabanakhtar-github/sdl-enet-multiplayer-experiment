@@ -3,6 +3,7 @@
 
 #include <cstdint> 
 #include <string> 
+#include <array> 
 #include <istream> 
 #include "MathFuncs.h"
 
@@ -27,15 +28,12 @@ struct ClientInfo
     int ID = -1; 
     std::size_t Hash; 
     int LastProcessedInputID = 0; 
-    Vector2 Position = { 0, 0 };
+    Vector2 Position = { 0, 0 }; 
 }; 
-
-#define MAKE_VERSION(a, b) (a << 4) | (b)
 
 struct PacketData
 {
     int Salt = 0;
-    std::int8_t ProtocolVersion = MAKE_VERSION(1, 0); 
     int ID = -1;
     PacketType Type = PT_INVALID; 
     int DataLength = 0;
@@ -70,15 +68,15 @@ struct HandshakeAcceptRejectPayload
 
 struct ClientUpdatePayload
 {
-    int SequenceNumber; 
-    Vector2 Input; 
+    int RequestID = -1; 
+    std::uint16_t InputBits; 
 };
 
 struct ServerUpdatePayload 
 {
     std::int64_t SequenceNumber = -1; 
     int ClientsLength = 0; 
-    std::vector<ClientInfo> ClientStates; 
+    std::array<ClientInfo, 10> ClientStates; 
 }; 
 
 template<typename T> 

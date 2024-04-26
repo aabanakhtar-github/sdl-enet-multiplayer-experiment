@@ -4,6 +4,12 @@
 #include <sstream> 
 #include <iostream>
 
+// TODO left: 
+// - Client server view synchronization (Clients see same as server) / correction
+// - Client inputs sent to server
+// - Server response to client input
+// - Interpolation (depends)
+
 void ClientEventSystem::Init(ECS::Scene& pscene) 
 {
     m_NetClient = NetClient(std::bind(&ClientEventSystem::OnRecievePacket, this, std::placeholders::_1)); 
@@ -33,7 +39,6 @@ void ClientEventSystem::Init(ECS::Scene& pscene)
 #if false
 void ClientEventSystem::Update(ECS::Scene& scene, float delta)
 {
-    const std::uint8_t* keyboard_state = SDL_GetKeyboardState(nullptr); 
     auto& component = scene.GetComponent<PhysicsBodyComponent>(0);
     
     input_packet.DataLength = output.str().size() + 1; 
@@ -47,12 +52,14 @@ void ClientEventSystem::Update(ECS::Scene& scene, float delta)
         m_NetClient.SendPacket(input_packet, 0, false);  
     }
 }
-#endif 
+#endif
+
 
 void ClientEventSystem::Update(ECS::Scene& scene, float delta) 
 {
     EventHandler::Get().Update(); 
 
+    std::uint16_t inputs = GetKeyboardBits(); 
     // Predict Client Movement
     PredictClientState(); 
     // Interp other members 
@@ -60,7 +67,15 @@ void ClientEventSystem::Update(ECS::Scene& scene, float delta)
 
     if (m_NetClient.GetConnected())
     {
+        // TODO: Check whether this is sufficient for the 
         m_NetClient.UpdateNetwork();
+        PacketData packet; 
+        packet.Type = PT_GAME_UPDATE; 
+        ClientUpdatePayload payload; 
+        payload.InputBits = inputs;
+        payload.RequestID = m_InputSequenceNumber++; 
+        packet.Data = PayloadFromString<ClientUpdatePayload>(payload); 
+        packet.DataLength = packet.Data.size() + 1;
     }
 }
 
@@ -83,6 +98,16 @@ void ClientEventSystem::PredictClientState()
 void ClientEventSystem::ReconcileWithServer()
 {
 
+}
+
+std::uint16_t ClientEventSystem::GetKeyboardBits()
+{
+    const std::uint8_t* keyboard_state = SDL_GetKeyboardState(nullptr); 
+    std::uint16_t bits = 0;
+    bits |= (keyboard_state[SDL_SCANCODE_W]) << 15; 
+    bits |= (keyboard_state[SDL_SCANCODE_A]) << 14; 
+    bits |= (keyboard_state[SDL_SCANCODE_S]) << 13; 
+    bits |= (keyboard_state[SDL_SCANCODE_D]) << 12; 
 }
 
 void ClientEventSystem::InterpolateEntities()

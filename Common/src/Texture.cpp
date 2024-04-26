@@ -47,16 +47,12 @@ TextureData::TextureData(TextureData&& other) noexcept
 
 TextureData& TextureData::operator = (TextureData&& other) noexcept
 {
-	SDL_FreeSurface(Surface);
-	SDL_DestroyTexture(Texture);
 	swap(*this, other);
 	return *this;
 }
 
 TextureData& TextureData::operator = (TextureData other)
 {
-	SDL_FreeSurface(Surface);
-	SDL_DestroyTexture(Texture);
 	swap(*this, other);	
 	return *this;
 }
@@ -118,8 +114,11 @@ bool TextureData::Refresh()
 
 TextureData::~TextureData()
 {
-	SDL_FreeSurface(Surface);
+	if (Surface != nullptr)	
+		SDL_FreeSurface(Surface);
 	Surface = nullptr;
-	SDL_DestroyTexture(Texture);
+
+	if (Texture != nullptr)
+		SDL_DestroyTexture(Texture);
 	Texture = nullptr;
 }

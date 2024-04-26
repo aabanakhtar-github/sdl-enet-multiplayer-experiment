@@ -9,7 +9,7 @@
 #include "Packet.h"
 #include <functional>
 
-struct ServerData
+struct ServerInfo 
 {
     ENetPeer* Server; 
     ENetAddress Address; 
@@ -36,7 +36,7 @@ public:
 private: 
     std::function<void(const PacketData&)> m_RecvCallback; 
     ENetHost* m_Client; 
-    ServerData m_Server; 
+    ServerInfo m_Server; 
     std::string m_Username;
     bool m_Valid; 
     bool m_Connected; 

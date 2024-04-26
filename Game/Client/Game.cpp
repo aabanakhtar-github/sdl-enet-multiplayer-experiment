@@ -2,6 +2,7 @@
 #include "Util.h"
 #include "CreateScenes.h"
 #include <thread>
+#include "Timer.h"
 
 namespace Client {
     
@@ -72,8 +73,17 @@ quit:
 
     void Game::Loop()
     {
-        ECS::SystemManager::Get().UpdateSystems(0.166667f, m_GameScenes[0]); 
-        std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000.0/60.0))) ;
+        static float delta_time = 0.0f; 
+        Timer timer; 
+        ECS::SystemManager::Get().UpdateSystems(delta_time, m_GameScenes[0]); 
+        delta_time = timer.GetDelta(); 
+
+        if (delta_time < 1.0f / m_TargetFPS)
+        {
+            timer.Block(1.0f / m_TargetFPS - delta_time);
+        }
+
+        delta_time = timer.GetDelta();
     }
 
     void Game::Quit() 

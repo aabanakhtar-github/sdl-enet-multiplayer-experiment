@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <queue>
 #include <functional> 
+#include <any>
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     #define _WINSOCK_DEPRECATED_NO_WARNINGS
@@ -21,7 +22,8 @@ struct ServerClientInfo : ClientInfo
 {
     ENetPeer* Peer = nullptr; 
     int ClientSalt;
-    int ServerSalt;  
+    int ServerSalt;
+    std::any UserData;
 }; 
 
 class NetServer
@@ -29,8 +31,8 @@ class NetServer
     NetServer(const NetServer&) = delete; 
     NetServer& operator = (const NetServer&) = delete; 
 public:
-    explicit NetServer() : m_Valid(false) {}
-    explicit NetServer(const std::uint16_t port, const std::size_t peers, std::function<void(const PacketData&)> recv_callback); 
+    explicit NetServer() : m_Server(nullptr), m_Valid(false) {}
+    explicit NetServer(const std::uint16_t port, const std::size_t peers, std::function<void(const PacketData&)> recv_callback, std::function<void(std::size_t)> connect_callback, std::function<void(std::size_t)> disconnect_callback); 
     ~NetServer(); 
     NetServer(NetServer&&); 
     NetServer& operator = (NetServer&&); 
@@ -42,6 +44,7 @@ public:
     void UpdateNetwork(float block_time = 0.0f); 
 
     bool GetValid() const { return m_Valid; } 
+    std::unordered_map<std::size_t, ServerClientInfo>& GetClients() { return m_Clients; }
 private:  
     void RegisterConnection(ENetPeer* peer);
 
@@ -50,6 +53,8 @@ private:
     bool VerifyHandshakeChallenge(const std::size_t hash, const int result) const; 
 private: 
     std::function<void(const PacketData&)> m_RecvCallback; 
+    std::function<void(const std::size_t)> m_ConnectCallback; 
+    std::function<void(const std::size_t)> m_DisconnectCallback;  
     ENetHost* m_Server; 
     bool m_Valid; 
     std::unordered_map<std::size_t, ServerClientInfo> m_Clients; 
