@@ -59,6 +59,36 @@ std::string PayloadToString<HandshakeAcceptRejectPayload>(const HandshakeAcceptR
     return ss.str();  
 }
 
+template<> 
+ServerUpdatePayload PayloadFromString<ServerUpdatePayload>(const std::string& data) 
+{
+    ServerUpdatePayload return_value; 
+    std::istringstream ss(data); 
+    ss >> return_value.ClientsLength; 
+    
+    for (int i = 0; i < return_value.ClientsLength; ++i)
+    {
+        ClientInfo client; 
+        ss >> client.ID >> client.Position.X >> client.Position.Y; 
+        return_value.ClientStates.emplace_back(std::move(client));
+    }
+
+    return return_value;
+}
+
+template<>
+std::string PayloadToString<ServerUpdatePayload>(const ServerUpdatePayload& payload)
+{
+    std::ostringstream ss; 
+    ss << payload.ClientsLength << " "; 
+    for (auto& client : payload.ClientStates)
+    {
+        ss << client.ID << " " << client.Position.X << " " << client.Position.Y << " ";
+    } 
+
+    return ss.str();
+}
+
 std::istream& operator >> (std::istream& in, PacketType& type)
 {
     int val; 

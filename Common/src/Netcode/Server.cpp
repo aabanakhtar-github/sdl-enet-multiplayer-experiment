@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <numeric> 
 
-NetServer::NetServer(const std::uint16_t port, const std::size_t peers, std::function<void(const PacketData&)> recv_callback, std::function<void(std::size_t)> connect_callback, std::function<void(std::size_t)> disconnect_callback) 
-    : m_ConnectCallback(connect_callback), m_DisconnectCallback(disconnect_callback), m_RecvCallback(recv_callback), m_Server(nullptr), m_Valid(false), m_Clients(), m_ID_Queue()
+NetServer::NetServer(const std::uint16_t port, const std::size_t peers, std::function<void(const PacketData&)> recv_callback) 
+    : m_RecvCallback(recv_callback), m_Server(nullptr), m_Valid(false), m_Clients(), m_ID_Queue()
 {
     ENetAddress addr;
     addr.host = ENET_HOST_ANY; 
@@ -35,8 +35,6 @@ NetServer::NetServer(const std::uint16_t port, const std::size_t peers, std::fun
 NetServer::NetServer(NetServer&& other)
 {
     std::swap(m_RecvCallback, other.m_RecvCallback); 
-    std::swap(m_ConnectCallback, other.m_ConnectCallback); 
-    std::swap(m_DisconnectCallback, other.m_DisconnectCallback);
     std::swap(m_Server, other.m_Server); 
     std::swap(m_Valid, other.m_Valid); 
     std::swap(m_Clients, other.m_Clients); 
@@ -47,8 +45,6 @@ NetServer::NetServer(NetServer&& other)
 NetServer& NetServer::operator = (NetServer&& other)
 {
     std::swap(m_RecvCallback, other.m_RecvCallback); 
-    std::swap(m_ConnectCallback, other.m_ConnectCallback); 
-    std::swap(m_DisconnectCallback, other.m_DisconnectCallback);
     std::swap(m_Server, other.m_Server); 
     std::swap(m_Valid, other.m_Valid); 
     std::swap(m_Clients, other.m_Clients); 
@@ -139,22 +135,21 @@ void NetServer::BroadcastPacket(PacketData packet, int channel, bool reliable)
 {
     for (auto&[ID, client] : m_Clients)
     {
-        PacketData copy = packet; 
-        copy.Salt = client.ServerSalt ^ client.ClientSalt; 
+        packet.Salt = client.ServerSalt ^ client.ClientSalt; 
         ENetPacket* net_packet = PacketDataToNetPacket(packet, reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT); 
         enet_peer_send(client.Peer, channel, net_packet);         
     }
 }
 
 // TODO: impl w/ salt
-void NetServer::BroadcastPacketAllExcept(const PacketData& packet, const int channel, const std::size_t client_hash, bool reliable) 
+void NetServer::BroadcastPacketAllExcept(PacketData packet, const int channel, const std::size_t ID, bool reliable) 
 {
-    abort();
-    ENetPacket* net_packet = PacketDataToNetPacket(packet, reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNSEQUENCED); 
     for (auto&[client, peer] : m_Clients) 
     {
-        if (client_hash != client) 
+        if (ID != client) 
         {
+            packet.Salt = peer.ClientSalt ^ peer.ServerSalt; 
+            ENetPacket* net_packet = PacketDataToNetPacket(packet, reliable ? ENET_PACKET_FLAG_RELIABLE : ENET_PACKET_FLAG_UNSEQUENCED); 
             enet_peer_send(peer.Peer, channel, net_packet); 
         }
     }
@@ -171,6 +166,7 @@ void NetServer::UpdateNetwork(float block_time)
         case ENET_EVENT_TYPE_CONNECT:
         {
             char ip_buffer[128] = { 0 }; 
+            event.peer->data = new int(-1);   
             enet_address_get_host_ip(&event.peer->address, ip_buffer, sizeof(ip_buffer));
             std::cout << "Recieved a new connection from client: " << ip_buffer << "!" << std::endl; 
             RegisterConnection(event.peer); 
@@ -199,7 +195,7 @@ void NetServer::UpdateNetwork(float block_time)
                     std::size_t client_ID = m_ID_Queue.front();
                     m_ID_Queue.pop(); 
                     
-                    event.peer->data = new std::size_t(client_ID);
+                    *static_cast<int*>(event.peer->data) = client_ID;
 
                     ServerClientInfo client_info; 
                     client_info.ID = client_ID;
@@ -211,8 +207,6 @@ void NetServer::UpdateNetwork(float block_time)
                     m_Clients.emplace(client_ID, std::move(client_info));
                     m_PendingConnections.erase(it);  
                     SendHandshakeAccepted(client_ID, true);
-
-                    m_ConnectCallback(client_ID);  
                 }
                 else 
                 {
@@ -239,10 +233,7 @@ void NetServer::UpdateNetwork(float block_time)
                 }
                 else
                 {
-                    std::cout << "Recieved a packet from unknown source!" << std::endl; 
-                    // disconnect this client 
-                    // TODO: research if it works 
-                    enet_peer_reset(event.peer);
+                    std::cerr << "Recieved a packet from unknown source!" << std::endl;
                 }
                 break;    
             } 
@@ -251,21 +242,23 @@ void NetServer::UpdateNetwork(float block_time)
             break;  
         }
         case ENET_EVENT_TYPE_DISCONNECT:
+        {
             std::cout << "A client disconnected!" << std::endl; 
-            auto ID = *static_cast<std::size_t*>(event.peer->data); 
-            if (event.peer->data != nullptr) 
+            auto ID = *static_cast<int*>(event.peer->data); 
+            if (event.peer->data != nullptr && ID != -1) 
             {
                 m_ID_Queue.push(*static_cast<std::size_t*>(event.peer->data)); 
+                m_Clients.erase(ID);
             }
             
-            m_DisconnectCallback(ID);
-
             delete (std::size_t*)event.peer->data; 
             event.peer->data = nullptr;              
             enet_peer_reset(event.peer);
             break; 
         }
+        }
    }
+   
 }
 
 void NetServer::SendHandshakeAccepted(const std::size_t ID, const bool accepted)

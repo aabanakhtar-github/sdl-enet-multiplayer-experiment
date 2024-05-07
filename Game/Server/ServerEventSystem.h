@@ -4,11 +4,12 @@
 #include "ECS.h"
 #include "Netcode/Server.h"
 #include <array> 
+#include "Timer.h" 
 
 class ServerEventSystem : public ECS::ISystem 
 {
 public: 
-    explicit ServerEventSystem(ECS::Scene& scene) : m_Scene(scene), m_NetServer() {}
+    explicit ServerEventSystem(ECS::Scene& scene) : m_NetworkSequenceNumber(0), m_Scene(scene) {}
     ~ServerEventSystem(); 
 
     virtual void Init(ECS::Scene& scene) override; 
@@ -17,15 +18,13 @@ public:
     void SetupServer(const std::uint16_t port); 
 private:
     void OnRecievePacket(const PacketData& packet);
-    void OnConnect(std::size_t ID);
-    void OnDisconnect(std::size_t ID);
-
-    void SendWorldState(); 
 private:
-    static constexpr float m_NetTickRate = 30.f;
-    std::uint64_t m_NetworkSequenceNumber = 0;
+    static constexpr float m_NetTickRate = 60.f;
+    Timer m_NetTickTimer; 
+    std::uint64_t m_NetworkSequenceNumber;
     NetServer m_NetServer;
-    ECS::Scene& m_Scene; 
+    ECS::Scene& m_Scene;
+    std::array<ECS::EntityID, 10> m_ClientToECS_ID; 
 }; 
 
 #endif

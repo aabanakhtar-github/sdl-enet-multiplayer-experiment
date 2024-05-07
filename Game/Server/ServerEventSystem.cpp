@@ -11,6 +11,7 @@ namespace {
 }
 
 using UserData = std::pair<ECS::EntityID, std::array<std::tuple<ClientInfo, ClientUpdatePayload, std::shared_ptr<ECS::EntityID>>, 1024>>;
+
 void ServerEventSystem::Init(ECS::Scene& scene) 
 {
     for (auto&[client, data] : m_NetServer.GetClients())
@@ -24,12 +25,19 @@ void ServerEventSystem::Init(ECS::Scene& scene)
     {
         GlobalAppState::Get().SetAppState(AppState::AS_QUIT);
     });
+
+
+    for (std::size_t i = 0; i < m_ClientToECS_ID.size(); ++i)
+    {
+        m_ClientToECS_ID[i] = scene.CreateEntity(); 
+        BuildPlayer(scene, m_ClientToECS_ID[i]); 
+        scene.SetEntityActive(m_ClientToECS_ID[i], false); 
+    }
 }
 
 void ServerEventSystem::SetupServer(const std::uint16_t port)
 {
-    m_NetServer = NetServer(port, 10, std::bind(&ServerEventSystem::OnRecievePacket, this, std::placeholders::_1), std::bind(&ServerEventSystem::OnConnect, this, std::placeholders::_1), 
-        std::bind(&ServerEventSystem::OnDisconnect, this, std::placeholders::_1));
+    m_NetServer = NetServer(port, 10, std::bind(&ServerEventSystem::OnRecievePacket, this, std::placeholders::_1));
 
     if (!m_NetServer.GetValid()) 
     {
@@ -37,51 +45,71 @@ void ServerEventSystem::SetupServer(const std::uint16_t port)
     }
 }
 
+
+// Most un-ECSy update method ever!!!
 void ServerEventSystem::Update(ECS::Scene& scene, float delta)
 {
-    PacketData output_packet = PacketData { 
-        .ID = 0, 
-        .Type = PT_GAME_UPDATE, 
-    }; 
-
-    std::ostringstream output_ss; 
-    output_ss << scene.GetComponent<PhysicsBodyComponent>(0).BoundingBox.x << " "; 
-    output_ss <<  scene.GetComponent<PhysicsBodyComponent>(0).BoundingBox.y << " "; 
-   
-    output_packet.Data = output_ss.str(); 
-    output_packet.DataLength = output_ss.str().size() + 1;  
-
     if (m_NetServer.GetValid())
     {
-        m_NetServer.UpdateNetwork(); 
-    } 
+        m_NetServer.UpdateNetwork();
+         
+        if (m_NetTickTimer.GetDelta() >= 1.0f / m_NetTickRate) 
+        {
+            // send an update packet
+            // TODO: Wrok on
+            PacketData update_packet; 
+            ServerUpdatePayload payload;
+           
+            update_packet.Type = PT_GAME_UPDATE; 
+            auto& clients = m_NetServer.GetClients();
+            payload.ClientsLength = clients.size(); 
+            payload.ClientStates.resize(payload.ClientsLength); 
 
-    scene.GetComponent<PhysicsBodyComponent>(0).Velocity.Y = 15 * up * delta; 
-    scene.GetComponent<PhysicsBodyComponent>(0).Velocity.X = 15 * down * delta; 
+            std::vector<std::size_t> connected_list;
+            connected_list.reserve(10); 
+
+            int i = 0;
+            for (auto &client : clients)
+            {
+                connected_list.push_back(client.first); 
+                Vector2 client_position;
+                auto& component = scene.GetComponent<PhysicsBodyComponent>(m_ClientToECS_ID[client.first]); 
+                client_position = { static_cast<float>(component.BoundingBox.x), static_cast<float>(component.BoundingBox.y) };
+                payload.ClientStates[i] = ClientInfo { static_cast<int>(client.first), client_position }; 
+                ++i;
+            }
+
+            for (std::size_t i = 0; i < m_ClientToECS_ID.size(); ++i)
+            {
+                // is it in the connected list? if so, make the entity active again
+                auto it = std::find(connected_list.begin(), connected_list.end(), i); 
+                if (it == connected_list.end())
+                {
+                    // make this client dissappear and reset their position 
+                    scene.SetEntityActive(m_ClientToECS_ID[i], false); 
+                    auto& component = scene.GetComponent<PhysicsBodyComponent>(m_ClientToECS_ID[i]);
+                    component = PhysicsBodyComponent { .BoundingBox = component.BoundingBox };
+                    component.SimulatesPhysics = true; 
+                }
+                else 
+                {
+                    scene.SetEntityActive(m_ClientToECS_ID[i]); 
+                } 
+            }
+
+            update_packet.Data = PayloadToString<ServerUpdatePayload>(payload); 
+            update_packet.DataLength = update_packet.Data.size() + 1; 
+
+            m_NetServer.BroadcastPacket(update_packet, 0, false); 
+            m_NetTickTimer.Reset();
+        }
+    } 
 
     EventHandler::Get().Update(); 
 }
 
 void ServerEventSystem::OnRecievePacket(const PacketData& packet) 
 {
-}
-
-
-// clear the input buffers on client disconnect / reconnect
-void ServerEventSystem::OnConnect(std::size_t ID)
-{
-    auto& clients = m_NetServer.GetClients(); 
-    auto temp = std::move(UserData());
-    temp.first = m_Scene.CreateEntity(); 
-    BuildPlayer(m_Scene, temp.first); 
-    clients[ID].UserData = std::move(temp); 
-}
-
-void ServerEventSystem::OnDisconnect(std::size_t ID)
-{
-    auto& clients = m_NetServer.GetClients(); 
-    m_Scene.DestroyEntity(std::any_cast<UserData>(clients[ID].UserData).first);
-    clients[ID].UserData = std::move(UserData());
 }
 
 ServerEventSystem::~ServerEventSystem() 

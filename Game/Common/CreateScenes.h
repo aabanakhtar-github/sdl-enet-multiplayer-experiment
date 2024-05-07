@@ -23,9 +23,6 @@ inline void CreateGameLevel(ECS::Scene& scene, bool server = false)
 {
     scene.RegisterComponent<TextureComponent>();
     scene.RegisterComponent<PhysicsBodyComponent>();
-    // 0 
-    auto player = scene.CreateEntity();
-    BuildPlayer(scene, player); 
     auto floor = scene.CreateEntity(); 
     scene.AddComponent<TextureComponent>(floor) = TextureComponent {
         .SourceRectangle = Rect(0, 0, 50, 50), 

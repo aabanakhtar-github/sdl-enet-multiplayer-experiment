@@ -61,7 +61,7 @@ quit:
 
         CreateGameLevel(m_GameScenes[0]); 
 
-        ECS::SystemManager::Get().RegisterSystems({ m_PlayerInputSystem, m_PhysicsSystem, m_GraphicsSystem });
+        ECS::SystemManager::Get().RegisterSystems({ m_PlayerInputSystem, m_GraphicsSystem });
         ECS::SystemManager::Get().InitAllSystems(m_GameScenes[0]); 
 
         if (GlobalAppState::Get().GetAppState() != AppState::AS_FAIL) 

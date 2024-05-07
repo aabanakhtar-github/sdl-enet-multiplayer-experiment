@@ -18,7 +18,7 @@ NetClient::NetClient(std::function<void(const PacketData&)> recv_callback)
 
 NetClient::NetClient(NetClient&& other) 
 {
-    std::swap(m_RecvCallback, other.m_RecvCallback); 
+    std::swap(m_RecvCallback, other.m_RecvCallback);
     std::swap(m_Client, other.m_Client); 
     std::swap(m_Server, other.m_Server); 
     std::swap(m_Username, other.m_Username); 
@@ -31,10 +31,6 @@ NetClient::NetClient(NetClient&& other)
 
 NetClient& NetClient::operator = (NetClient&& other) 
 {
-    if (m_Client != nullptr) 
-    {
-        enet_host_destroy(m_Client); 
-    }
     std::swap(m_RecvCallback, other.m_RecvCallback);
     std::swap(m_Client, other.m_Client); 
     std::swap(m_Server, other.m_Server); 
@@ -150,6 +146,7 @@ void NetClient::UpdateNetwork(float blocking_time, bool disconnection)
                     // reset this client and invalidate state
                     enet_peer_reset(m_Server.Server);
                     m_Connected = false; 
+                    
                 }
                 break; 
             }
@@ -176,6 +173,9 @@ void NetClient::UpdateNetwork(float blocking_time, bool disconnection)
 
 NetClient::~NetClient() 
 {
-    enet_host_destroy(m_Client); 
+    if (m_Client != nullptr) 
+    {    
+        enet_host_destroy(m_Client);
+    } 
     m_Client = nullptr; 
 }

@@ -20,7 +20,8 @@ class NetClient
     NetClient(const NetClient&) = delete; 
     NetClient& operator = (const NetClient&) = delete; 
 public: 
-    explicit NetClient() : m_Valid(false) {} 
+// TODO: add copy and swap to make cleaner code / easy to update
+    explicit NetClient() : m_Client(nullptr), m_Server(nullptr, {}), m_Valid(false) {} 
     explicit NetClient(std::function<void(const PacketData&)> recv_callback); 
     NetClient(NetClient&&);
     NetClient& operator = (NetClient&&); 
@@ -34,7 +35,7 @@ public:
     bool GetConnected() const { return m_Valid && m_Connected; } 
     bool GetValid() const { return m_Valid; }
 private: 
-    std::function<void(const PacketData&)> m_RecvCallback; 
+    std::function<void(const PacketData&)> m_RecvCallback;
     ENetHost* m_Client; 
     ServerInfo m_Server; 
     std::string m_Username;

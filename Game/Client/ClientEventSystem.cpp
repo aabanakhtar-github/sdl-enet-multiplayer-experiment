@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <sstream> 
 #include <iostream>
+#include "CreateScenes.h"
 
 // TODO left: 
 // - Client server view synchronization (Clients see same as server) / correction
@@ -10,7 +11,7 @@
 // - Server response to client input
 // - Interpolation (depends)
 
-void ClientEventSystem::Init(ECS::Scene& pscene) 
+void ClientEventSystem::Init(ECS::Scene& scene) 
 {
     m_NetClient = NetClient(std::bind(&ClientEventSystem::OnRecievePacket, this, std::placeholders::_1)); 
     if (!m_NetClient.GetValid()) 
@@ -34,6 +35,14 @@ void ClientEventSystem::Init(ECS::Scene& pscene)
     {
         GlobalAppState::Get().SetAppState(AppState::AS_QUIT);
     });
+
+    // Create Players 
+    for (std::size_t i = 0; i < m_OtherPeers.size(); ++i)
+    {
+        m_OtherPeers[i].first = scene.CreateEntity();
+        BuildPlayer(scene, m_OtherPeers[i].first); 
+        scene.SetEntityActive(m_OtherPeers[i].first, false);  
+    }
 }
 
 #if false
@@ -52,12 +61,12 @@ void ClientEventSystem::Update(ECS::Scene& scene, float delta)
         m_NetClient.SendPacket(input_packet, 0, false);  
     }
 }
-#endif
-
+#endif 
 
 void ClientEventSystem::Update(ECS::Scene& scene, float delta) 
 {
     EventHandler::Get().Update(); 
+    m_CurrentScene = &scene;
 
     std::uint16_t inputs = GetKeyboardBits(); 
     // Predict Client Movement
@@ -67,7 +76,7 @@ void ClientEventSystem::Update(ECS::Scene& scene, float delta)
 
     if (m_NetClient.GetConnected())
     {
-        // TODO: Check whether this is sufficient for the 
+        // TODO: work on this, unimplemented
         m_NetClient.UpdateNetwork();
         PacketData packet; 
         packet.Type = PT_GAME_UPDATE; 
@@ -79,13 +88,43 @@ void ClientEventSystem::Update(ECS::Scene& scene, float delta)
     }
 }
 
-void ClientEventSystem::OnRecievePacket(const PacketData& packet) 
+void ClientEventSystem::UpdateGame(const std::string &packet_data)
+{
+    ECS::Scene& scene = *m_CurrentScene; 
+    auto payload = PayloadFromString<ServerUpdatePayload>(packet_data);
+    // update the client positions 
+    std::vector<std::size_t> connected_list; 
+
+    for (auto &client : payload.ClientStates)
+    {
+        connected_list.push_back(client.ID); 
+        auto& component = scene.GetComponent<PhysicsBodyComponent>(m_OtherPeers[client.ID].first); 
+        component.BoundingBox.x = client.Position.X; 
+        component.BoundingBox.y = client.Position.Y;
+        scene.SetEntityActive(m_OtherPeers[client.ID].first); 
+    }
+
+    for (std::size_t i = 0; i < m_OtherPeers.size(); ++i)
+    {
+        // is it in the connected list? if so, make the entity active again
+        auto it = std::find(connected_list.begin(), connected_list.end(), i); 
+        if (it == connected_list.end())
+        {
+            // make this client dissappear and reset their position 
+            scene.SetEntityActive(m_OtherPeers[i].first, false); 
+            auto& component = scene.GetComponent<PhysicsBodyComponent>(m_OtherPeers[i].first);
+            component = PhysicsBodyComponent { .BoundingBox = component.BoundingBox };
+        }
+    } 
+}
+
+void ClientEventSystem::OnRecievePacket(const PacketData &packet)
 {
     switch (packet.Type) 
     {
     case PT_GAME_UPDATE: 
         // resync / reconcile / interpolate
-        ReconcileWithServer(); 
+        UpdateGame(packet.Data); 
         break;     
     }
 }

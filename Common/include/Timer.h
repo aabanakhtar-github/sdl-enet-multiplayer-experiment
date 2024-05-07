@@ -19,6 +19,11 @@ public:
             (std::chrono::duration_cast<std::chrono::milliseconds>(m_EndTime - m_StartTime).count()) / 1000.f; 
     }
 
+    void Reset()
+    {
+        m_StartTime = m_Clock.now(); 
+    }
+
     void Block(float time)
     {
         auto t = std::chrono::milliseconds(static_cast<long long>(time * 1000));

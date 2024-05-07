@@ -20,14 +20,13 @@ enum PacketType
     PT_DISCONNECT_UPDATE,
     PT_HANDSHAKE, 
     PT_HANDSHAKE_RESULT,
+    PT_CLIENT_JOINED_OR_LEFT,
     PT_INVALID
 };
 
 struct ClientInfo
 {
     int ID = -1; 
-    std::size_t Hash; 
-    int LastProcessedInputID = 0; 
     Vector2 Position = { 0, 0 }; 
 }; 
 
@@ -74,9 +73,8 @@ struct ClientUpdatePayload
 
 struct ServerUpdatePayload 
 {
-    std::int64_t SequenceNumber = -1; 
     int ClientsLength = 0; 
-    std::array<ClientInfo, 10> ClientStates; 
+    std::vector<ClientInfo> ClientStates; 
 }; 
 
 template<typename T> 

@@ -23,7 +23,8 @@ struct ServerClientInfo : ClientInfo
     ENetPeer* Peer = nullptr; 
     int ClientSalt;
     int ServerSalt;
-    std::any UserData;
+    std::size_t Hash;
+    std::any UserData; 
 }; 
 
 class NetServer
@@ -32,7 +33,7 @@ class NetServer
     NetServer& operator = (const NetServer&) = delete; 
 public:
     explicit NetServer() : m_Server(nullptr), m_Valid(false) {}
-    explicit NetServer(const std::uint16_t port, const std::size_t peers, std::function<void(const PacketData&)> recv_callback, std::function<void(std::size_t)> connect_callback, std::function<void(std::size_t)> disconnect_callback); 
+    explicit NetServer(const std::uint16_t port, const std::size_t peers, std::function<void(const PacketData&)> recv_callback); 
     ~NetServer(); 
     NetServer(NetServer&&); 
     NetServer& operator = (NetServer&&); 
@@ -40,7 +41,7 @@ public:
     void SendPacketToPending(const PacketData& packet, const std::size_t hash, const int channel, bool reliable = false);
     void SendPacketTo(PacketData packet, const std::size_t ID, const int channel, bool reliable = false); 
     void BroadcastPacket(PacketData packet, const int channel, bool reliable = false); 
-    void BroadcastPacketAllExcept(const PacketData& packet, const int channel, const std::size_t ID, bool reliable);
+    void BroadcastPacketAllExcept(PacketData packet, const int channel, const std::size_t ID, bool reliable);
     void UpdateNetwork(float block_time = 0.0f); 
 
     bool GetValid() const { return m_Valid; } 
@@ -53,8 +54,6 @@ private:
     bool VerifyHandshakeChallenge(const std::size_t hash, const int result) const; 
 private: 
     std::function<void(const PacketData&)> m_RecvCallback; 
-    std::function<void(const std::size_t)> m_ConnectCallback; 
-    std::function<void(const std::size_t)> m_DisconnectCallback;  
     ENetHost* m_Server; 
     bool m_Valid; 
     std::unordered_map<std::size_t, ServerClientInfo> m_Clients; 

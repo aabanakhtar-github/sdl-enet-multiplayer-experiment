@@ -23,13 +23,7 @@ namespace ECS
 		extern ComponentID g_next_componentID;
 		constexpr EntityID MAX_ENTITIES = 10'000;
 		constexpr ComponentID MAX_COMPONENT_PER_ENTITY = 32;
-		using ComponentMask = std::bitset<MAX_COMPONENT_PER_ENTITY>;
-
-		struct EntityData
-		{
-			ComponentMask Components;
-			EntityID id;
-		};
+		using ComponentMask = std::bitset<MAX_COMPONENT_PER_ENTITY + 1>;
 	}
 
 	struct Component
@@ -169,16 +163,24 @@ namespace ECS
 		{
 			EntityID e = m_FreeEntityIDs.front();
 			assert(e < __Internal::MAX_ENTITIES && "Cannot have more than 10000 entites");
-			m_ActiveEntities.insert(std::make_pair(e, __Internal::ComponentMask()));
+
+			auto default_mask = __Internal::ComponentMask(); 
+			default_mask[0] = 1; 	
+			m_ActiveEntities.emplace(e, default_mask);
 			m_FreeEntityIDs.pop_front();
 			return e;
+		}
+
+		void SetEntityActive(ECS::EntityID ID, bool active = true)
+		{
+			assert(m_ActiveEntities.contains(ID) && "Cannot edit activity of a non-existent entity!"); 
+			m_ActiveEntities[ID][0] = active; 
 		}
 
 		bool EntityExists(EntityID ID)
 		{
 			return m_ActiveEntities.contains(ID);
 		}
-
 
 		void DestroyEntity(EntityID ID)
 		{
@@ -238,11 +240,11 @@ namespace ECS
 		explicit SceneView(Scene& scene)
 		{
 			static_assert((std::is_base_of_v<Component, T> && ...), "SceneView only accepts components deriving from Component!");
+			m_Mask[0] = 1;  // it's already checking for active entities 
 
 			if constexpr (sizeof...(T) > 0)
 			{
 				std::vector<ComponentID> IDs = { (GetComponentID<T>(), ...) };
-
 				for (ComponentID ID : IDs)
 				{
 					m_Mask.set(ID);
@@ -256,7 +258,6 @@ namespace ECS
 					}
 				}
 			}
-
 			else
 			{
 				for (auto [ID, _] : scene.m_ActiveEntities)
