@@ -68,7 +68,7 @@ struct HandshakeAcceptRejectPayload
 struct ClientUpdatePayload
 {
     int RequestID = -1; 
-    std::uint16_t InputBits; 
+    std::uint16_t InputBits = 0; 
 };
 
 struct ServerUpdatePayload 

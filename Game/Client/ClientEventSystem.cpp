@@ -39,9 +39,9 @@ void ClientEventSystem::Init(ECS::Scene& scene)
     // Create Players 
     for (std::size_t i = 0; i < m_OtherPeers.size(); ++i)
     {
-        m_OtherPeers[i].first = scene.CreateEntity();
-        BuildPlayer(scene, m_OtherPeers[i].first); 
-        scene.SetEntityActive(m_OtherPeers[i].first, false);  
+        m_OtherPeers[i].ID = scene.CreateEntity();
+        BuildPlayer(scene, m_OtherPeers[i].ID); 
+        scene.SetEntityActive(m_OtherPeers[i].ID, false);  
     }
 }
 
@@ -71,7 +71,6 @@ void ClientEventSystem::Update(ECS::Scene& scene, float delta)
     std::uint16_t inputs = GetKeyboardBits(); 
     // Predict Client Movement
     PredictClientState(); 
-    // Interp other members 
     InterpolateEntities(); 
 
     if (m_NetClient.GetConnected())
@@ -79,12 +78,15 @@ void ClientEventSystem::Update(ECS::Scene& scene, float delta)
         // TODO: work on this, unimplemented
         m_NetClient.UpdateNetwork();
         PacketData packet; 
-        packet.Type = PT_GAME_UPDATE; 
+        packet.Type = PT_GAME_UPDATE;
+      
         ClientUpdatePayload payload; 
         payload.InputBits = inputs;
         payload.RequestID = m_InputSequenceNumber++; 
-        //packet.Data = PayloadFromString<ClientUpdatePayload>(payload); 
+        packet.Data = PayloadToString<ClientUpdatePayload>(payload);
+
         packet.DataLength = packet.Data.size() + 1;
+        m_NetClient.SendPacket(packet, 0, false);  
     }
 }
 
@@ -98,10 +100,11 @@ void ClientEventSystem::UpdateGame(const std::string &packet_data)
     for (auto &client : payload.ClientStates)
     {
         connected_list.push_back(client.ID); 
-        auto& component = scene.GetComponent<PhysicsBodyComponent>(m_OtherPeers[client.ID].first); 
-        component.BoundingBox.x = client.Position.X; 
-        component.BoundingBox.y = client.Position.Y;
-        scene.SetEntityActive(m_OtherPeers[client.ID].first); 
+        auto& component = scene.GetComponent<PhysicsBodyComponent>(m_OtherPeers[client.ID].ID); 
+        auto& view = m_OtherPeers[client.ID]; 
+        view.LastPosition = { static_cast<float>(component.BoundingBox.x), static_cast<float>(component.BoundingBox.y) };  
+        view.LerpPosition = client.Position; 
+        scene.SetEntityActive(m_OtherPeers[client.ID].ID); 
     }
 
     for (std::size_t i = 0; i < m_OtherPeers.size(); ++i)
@@ -111,11 +114,11 @@ void ClientEventSystem::UpdateGame(const std::string &packet_data)
         if (it == connected_list.end())
         {
             // make this client dissappear and reset their position 
-            scene.SetEntityActive(m_OtherPeers[i].first, false); 
-            auto& component = scene.GetComponent<PhysicsBodyComponent>(m_OtherPeers[i].first);
+            scene.SetEntityActive(m_OtherPeers[i].ID, false); 
+            auto& component = scene.GetComponent<PhysicsBodyComponent>(m_OtherPeers[i].ID);
             component = PhysicsBodyComponent { .BoundingBox = component.BoundingBox };
         }
-    } 
+    }
 }
 
 void ClientEventSystem::OnRecievePacket(const PacketData &packet)
@@ -124,6 +127,7 @@ void ClientEventSystem::OnRecievePacket(const PacketData &packet)
     {
     case PT_GAME_UPDATE: 
         // resync / reconcile / interpolate
+        m_LerpTimer.Reset(); 
         UpdateGame(packet.Data); 
         break;     
     }
@@ -147,10 +151,26 @@ std::uint16_t ClientEventSystem::GetKeyboardBits()
     bits |= (keyboard_state[SDL_SCANCODE_A]) << 14; 
     bits |= (keyboard_state[SDL_SCANCODE_S]) << 13; 
     bits |= (keyboard_state[SDL_SCANCODE_D]) << 12; 
+    bits |= (keyboard_state[SDL_SCANCODE_SPACE]) << 11; 
     return bits; 
 }
 
+namespace { constexpr float g_smooth = 1.3f; }
+
 void ClientEventSystem::InterpolateEntities()
 {
+    for (auto& client : m_OtherPeers)
+    {
+        auto& component = m_CurrentScene->GetComponent<PhysicsBodyComponent>(client.ID);
+        const float T = (std::min)(1.0f, m_LerpTimer.GetDelta() / (1.0f / 10.0f)) * g_smooth; 
 
+        Vector2 new_position = {
+            std::lerp(client.Position.X, client.LerpPosition.X, T), 
+            std::lerp(client.Position.Y, client.LerpPosition.Y, T)
+        }; 
+
+        client.Position = std::move(new_position); 
+        component.BoundingBox.x = static_cast<int>(new_position.X);
+        component.BoundingBox.y = static_cast<int>(new_position.Y);
+    }
 }

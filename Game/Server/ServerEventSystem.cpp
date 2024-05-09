@@ -49,12 +49,15 @@ void ServerEventSystem::SetupServer(const std::uint16_t port)
 // Most un-ECSy update method ever!!!
 void ServerEventSystem::Update(ECS::Scene& scene, float delta)
 {
+    m_CurrentScene = &scene; 
+
     if (m_NetServer.GetValid())
     {
         m_NetServer.UpdateNetwork();
          
         if (m_NetTickTimer.GetDelta() >= 1.0f / m_NetTickRate) 
         {
+            std::cout << m_NetTickTimer.GetDelta() << std::endl; 
             // send an update packet
             // TODO: Wrok on
             PacketData update_packet; 
@@ -110,6 +113,22 @@ void ServerEventSystem::Update(ECS::Scene& scene, float delta)
 
 void ServerEventSystem::OnRecievePacket(const PacketData& packet) 
 {
+    switch (packet.Type) 
+    {
+    case PT_GAME_UPDATE: 
+    {    
+        auto payload = PayloadFromString<ClientUpdatePayload>(packet.Data); 
+        ECS::EntityID client = m_ClientToECS_ID[packet.ID];
+        auto& component = m_CurrentScene->GetComponent<PhysicsBodyComponent>(client); 
+        //w = 15, a = 14, s = 13, d = 12
+        float x_scale = (payload.InputBits >> 14) ? 1.0f : ((payload.InputBits >> 12) ? -1.0f : 0.0f); 
+        float y_scale = (payload.InputBits >> 15) ? -1.0f : 0.0f;  
+        std::cout << std::bitset<16>(payload.InputBits) << std::endl; 
+        component.Acceleration.X = x_scale * m_PlayerAccelX; 
+        component.Acceleration.Y = y_scale * -m_PlayerAccelY;
+        break; 
+    }
+    }
 }
 
 ServerEventSystem::~ServerEventSystem() 

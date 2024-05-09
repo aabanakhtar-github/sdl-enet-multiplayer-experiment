@@ -9,7 +9,7 @@
 class ServerEventSystem : public ECS::ISystem 
 {
 public: 
-    explicit ServerEventSystem(ECS::Scene& scene) : m_NetworkSequenceNumber(0), m_Scene(scene) {}
+    explicit ServerEventSystem(ECS::Scene& scene) : m_NetworkSequenceNumber(0) {}
     ~ServerEventSystem(); 
 
     virtual void Init(ECS::Scene& scene) override; 
@@ -19,11 +19,13 @@ public:
 private:
     void OnRecievePacket(const PacketData& packet);
 private:
-    static constexpr float m_NetTickRate = 60.f;
+    static constexpr float m_NetTickRate = 20.f;
+    static constexpr float m_PlayerAccelX = 5.f; 
+    static constexpr float m_PlayerAccelY = 5.f; 
     Timer m_NetTickTimer; 
     std::uint64_t m_NetworkSequenceNumber;
     NetServer m_NetServer;
-    ECS::Scene& m_Scene;
+    ECS::Scene* m_CurrentScene;
     std::array<ECS::EntityID, 10> m_ClientToECS_ID; 
 }; 
 

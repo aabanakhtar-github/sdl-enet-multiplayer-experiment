@@ -11,7 +11,7 @@ void PhysicsSystem::Update(ECS::Scene& scene, float delta)
 		auto& component = scene.GetComponent<PhysicsBodyComponent>(ID);
 		if (component.SimulatesPhysics)
 		{
-			component.Acceleration.Y += kGRAVITY * delta;
+			component.Acceleration.Y += m_Gravity * delta;
 		}	
 
 		component.Velocity +=  { component.Acceleration.X * delta, component.Acceleration.Y };

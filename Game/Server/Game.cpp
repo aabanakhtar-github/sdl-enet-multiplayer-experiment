@@ -79,16 +79,16 @@ quit:
 
     void Game::Loop() 
     {
-        static float deltaTime = 0.0f; 
+        static float delta_time = 0.0f; 
         
         Timer timer;
-        ECS::SystemManager::Get().UpdateSystems(deltaTime, m_Arena); 
+        ECS::SystemManager::Get().UpdateSystems(delta_time, m_Arena); 
 
-        deltaTime = timer.GetDelta();
-        if (deltaTime < 1.0 / m_TargetFPS)
-            timer.Block(1.0 / m_TargetFPS - deltaTime); 
+        delta_time = timer.GetDelta();
+        if (delta_time < 1.0 / m_TargetFPS)
+            timer.Block(1.0 / m_TargetFPS - delta_time); 
 
-        deltaTime = timer.GetDelta();
+        delta_time = timer.GetDelta();
     }
 
 }

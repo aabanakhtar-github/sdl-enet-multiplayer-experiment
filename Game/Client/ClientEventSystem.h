@@ -6,13 +6,14 @@
 #include "SDL.h"
 #include "EventHandler.h"
 #include "Netcode/Client.h"
+#include "Timer.h"
 #include <array>  
 
 
-class ClientClientInfo : ClientInfo 
+struct ClientView : ClientInfo 
 {
     ECS::EntityID ID; 
-    Vector2 LastPosition; 
+    Vector2 LastPosition, LerpPosition; 
 };
 
 class ClientEventSystem : public ECS::ISystem
@@ -36,10 +37,11 @@ private:
     std::uint64_t m_InputSequenceNumber = 0; 
     EventHandler m_EventHandler; 
     NetClient m_NetClient;
-    std::array<ClientInfoEx, 10> m_OtherPeers; 
+    std::array<ClientView, 10> m_OtherPeers; 
     std::array<ClientRollbackInfo, 1024> m_RollbackBuffer; 
     ECS::EntityID m_ID; 
     ECS::Scene* m_CurrentScene;
+    Timer m_LerpTimer; 
 };
 
 #endif
