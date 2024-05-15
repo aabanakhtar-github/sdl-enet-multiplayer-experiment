@@ -19,9 +19,9 @@ public:
 private:
     void OnRecievePacket(const PacketData& packet);
 private:
-    static constexpr float m_NetTickRate = 20.f;
+    static constexpr float m_NetTickRate = 15.f;
     static constexpr float m_PlayerAccelX = 5.f; 
-    static constexpr float m_PlayerAccelY = 5.f; 
+    static constexpr float m_PlayerAccelY = 10.f; 
     Timer m_NetTickTimer; 
     std::uint64_t m_NetworkSequenceNumber;
     NetServer m_NetServer;

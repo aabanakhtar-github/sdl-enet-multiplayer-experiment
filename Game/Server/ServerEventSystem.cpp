@@ -31,6 +31,8 @@ void ServerEventSystem::Init(ECS::Scene& scene)
     {
         m_ClientToECS_ID[i] = scene.CreateEntity(); 
         BuildPlayer(scene, m_ClientToECS_ID[i]); 
+        auto& component = scene.GetComponent<PhysicsBodyComponent>(m_ClientToECS_ID[i]);
+        component.SimulatesPhysics = true;  
         scene.SetEntityActive(m_ClientToECS_ID[i], false); 
     }
 }
@@ -57,7 +59,6 @@ void ServerEventSystem::Update(ECS::Scene& scene, float delta)
          
         if (m_NetTickTimer.GetDelta() >= 1.0f / m_NetTickRate) 
         {
-            std::cout << m_NetTickTimer.GetDelta() << std::endl; 
             // send an update packet
             // TODO: Wrok on
             PacketData update_packet; 
@@ -121,11 +122,33 @@ void ServerEventSystem::OnRecievePacket(const PacketData& packet)
         ECS::EntityID client = m_ClientToECS_ID[packet.ID];
         auto& component = m_CurrentScene->GetComponent<PhysicsBodyComponent>(client); 
         //w = 15, a = 14, s = 13, d = 12
-        float x_scale = (payload.InputBits >> 14) ? 1.0f : ((payload.InputBits >> 12) ? -1.0f : 0.0f); 
-        float y_scale = (payload.InputBits >> 15) ? -1.0f : 0.0f;  
-        std::cout << std::bitset<16>(payload.InputBits) << std::endl; 
-        component.Acceleration.X = x_scale * m_PlayerAccelX; 
-        component.Acceleration.Y = y_scale * -m_PlayerAccelY;
+        std::bitset<16> inputs = payload.InputBits;  
+        float x_scale = 0.0f, y_scale = 0.0f;
+        std::cout << inputs << std::endl; 
+
+        if (inputs[14]) 
+        {
+            x_scale = -1; 
+        } 
+        else if (inputs[13])
+        {
+            x_scale = 1; 
+        }
+        else 
+        { 
+            x_scale = 0;
+        }
+       
+        component.Velocity.X = x_scale * m_PlayerAccelX; 
+
+        std::cout << x_scale << " " << y_scale << std::endl; 
+        break; 
+    }
+    case PT_CLIENT_JUMP: 
+    {
+        ECS::EntityID client = m_ClientToECS_ID[packet.ID]; 
+        auto& component = m_CurrentScene->GetComponent<PhysicsBodyComponent>(client); 
+        component.Velocity.Y = -m_PlayerAccelY; 
         break; 
     }
     }

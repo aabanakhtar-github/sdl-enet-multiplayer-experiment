@@ -92,8 +92,8 @@ template<>
 std::string PayloadToString<ClientUpdatePayload>(const ClientUpdatePayload& payload) 
 {
     std::ostringstream ss; 
-    ss << payload.InputBits; 
-    ss << payload.RequestID; 
+    ss << payload.InputBits << " "; 
+    ss << payload.RequestID << " "; 
 
     return ss.str();
 }
@@ -102,7 +102,7 @@ template<>
 ClientUpdatePayload PayloadFromString<ClientUpdatePayload>(const std::string& data) 
 {
     ClientUpdatePayload return_value; 
-    std::istringstream ss(data); 
+    std::istringstream ss(data);
     ss >> return_value.InputBits; 
     ss >> return_value.RequestID; 
     return return_value;  

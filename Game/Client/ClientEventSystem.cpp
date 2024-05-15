@@ -26,8 +26,16 @@ void ClientEventSystem::Init(ECS::Scene& scene)
     { 
         switch (e.key.keysym.sym) 
         {
-            case SDLK_SPACE:
-                break;
+        case SDLK_SPACE:
+        {
+            PacketData packet; 
+            packet.Type = PT_CLIENT_JUMP; 
+            packet.DataLength = 0; 
+            m_NetClient.SendPacket(packet, 0, true);
+            break;
+        }
+       default:
+            break; 
         }  
     });   
 
@@ -43,6 +51,7 @@ void ClientEventSystem::Init(ECS::Scene& scene)
         BuildPlayer(scene, m_OtherPeers[i].ID); 
         scene.SetEntityActive(m_OtherPeers[i].ID, false);  
     }
+ 
 }
 
 #if false
@@ -92,7 +101,7 @@ void ClientEventSystem::Update(ECS::Scene& scene, float delta)
 
 void ClientEventSystem::UpdateGame(const std::string &packet_data)
 {
-    ECS::Scene& scene = *m_CurrentScene; 
+    ECS::Scene& scene = *m_CurrentScene;
     auto payload = PayloadFromString<ServerUpdatePayload>(packet_data);
     // update the client positions 
     std::vector<std::size_t> connected_list; 
@@ -147,11 +156,8 @@ std::uint16_t ClientEventSystem::GetKeyboardBits()
 {
     const std::uint8_t* keyboard_state = SDL_GetKeyboardState(nullptr); 
     std::uint16_t bits = 0;
-    bits |= (keyboard_state[SDL_SCANCODE_W]) << 15; 
     bits |= (keyboard_state[SDL_SCANCODE_A]) << 14; 
-    bits |= (keyboard_state[SDL_SCANCODE_S]) << 13; 
-    bits |= (keyboard_state[SDL_SCANCODE_D]) << 12; 
-    bits |= (keyboard_state[SDL_SCANCODE_SPACE]) << 11; 
+    bits |= (keyboard_state[SDL_SCANCODE_D]) << 13; 
     return bits; 
 }
 

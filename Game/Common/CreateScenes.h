@@ -15,7 +15,7 @@ inline void BuildPlayer(ECS::Scene& scene, ECS::EntityID player)
     }; 
     scene.AddComponent<PhysicsBodyComponent>(player) = PhysicsBodyComponent {
         .BoundingBox = { 0, 0, 50, 50 }, 
-        .SimulatesPhysics = true
+        .SimulatesPhysics = false 
     };
 }
 

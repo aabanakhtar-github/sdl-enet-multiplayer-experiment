@@ -231,10 +231,6 @@ void NetServer::UpdateNetwork(float block_time)
                 {
                     m_RecvCallback(parsed_packet); 
                 }
-                else
-                {
-                    std::cerr << "Recieved a packet from unknown source!" << std::endl;
-                }
                 break;    
             } 
             } 

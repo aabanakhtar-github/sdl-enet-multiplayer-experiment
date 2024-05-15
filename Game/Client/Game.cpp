@@ -68,8 +68,8 @@ quit:
         {
             GlobalAppState::Get().SetAppState(AppState::AS_LOOP);
         }   
-
-    }
+        
+   }
 
     void Game::Loop()
     {

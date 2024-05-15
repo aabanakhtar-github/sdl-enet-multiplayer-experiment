@@ -35,13 +35,14 @@ private:
 private:
     static constexpr float m_NetTickRate = 30.f; 
     std::uint64_t m_InputSequenceNumber = 0; 
+    bool m_InputBit = false;  
     EventHandler m_EventHandler; 
     NetClient m_NetClient;
     std::array<ClientView, 10> m_OtherPeers; 
     std::array<ClientRollbackInfo, 1024> m_RollbackBuffer; 
     ECS::EntityID m_ID; 
     ECS::Scene* m_CurrentScene;
-    Timer m_LerpTimer; 
+    Timer m_LerpTimer;
 };
 
 #endif

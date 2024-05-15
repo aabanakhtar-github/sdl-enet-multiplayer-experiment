@@ -15,7 +15,7 @@ public:
 private:
 	void ResolveCollisions(PhysicsBodyComponent& component, ECS::SceneView<PhysicsBodyComponent>& scene_view, ECS::Scene& scene);
 private:
-	constexpr static float m_Gravity = 10.0f;
+	constexpr static float m_Gravity = 50.0f;
 };
 
 #endif // PHYSICS_SYSTEM_H

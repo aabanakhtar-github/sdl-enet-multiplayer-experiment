@@ -11,10 +11,10 @@ void PhysicsSystem::Update(ECS::Scene& scene, float delta)
 		auto& component = scene.GetComponent<PhysicsBodyComponent>(ID);
 		if (component.SimulatesPhysics)
 		{
-			component.Acceleration.Y += m_Gravity * delta;
+			component.Acceleration.Y += m_Gravity;
 		}	
 
-		component.Velocity +=  { component.Acceleration.X * delta, component.Acceleration.Y };
+		component.Velocity +=  { component.Acceleration.X * delta, component.Acceleration.Y * delta};
 		component.BoundingBox.x += component.Velocity.X; 
 
 		for (auto other : physics_bodies.GetEntities())

@@ -21,6 +21,7 @@ enum PacketType
     PT_HANDSHAKE, 
     PT_HANDSHAKE_RESULT,
     PT_CLIENT_JOINED_OR_LEFT,
+    PT_CLIENT_JUMP, 
     PT_INVALID
 };
 
