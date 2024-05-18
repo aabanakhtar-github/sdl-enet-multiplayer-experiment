@@ -12,6 +12,7 @@ set(SOURCES
 
 add_subdirectory(vendor/SDL)
 add_subdirectory(vendor/enet)
+add_subdirectory(vendor/SDL_image)
 
 add_library(${PROJECT_NAME} ${SOURCES}) 
 
@@ -29,3 +30,4 @@ else()
 	target_link_libraries(${PROJECT_NAME} SDL2::SDL2main SDL2::SDL2 enet)
 endif()
 
+target_link_libraries(${PROJECT_NAME} )

@@ -47,8 +47,7 @@ void ClientEventSystem::Init(ECS::Scene& scene)
     // Create Players 
     for (std::size_t i = 0; i < m_OtherPeers.size(); ++i)
     {
-        m_OtherPeers[i].ID = scene.CreateEntity();
-        BuildPlayer(scene, m_OtherPeers[i].ID); 
+        m_OtherPeers[i].ID = MakeEntity(scene, Prototype::PLAYER, Vector2(0, 0));  
         scene.SetEntityActive(m_OtherPeers[i].ID, false);  
     }
  

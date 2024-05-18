@@ -4,6 +4,7 @@ project(Game)
 set(_SHARED_SOURCES  
 	Common/GraphicsSystem.cpp
 	Common/PhysicsSystem.cpp
+	Common/CreateScenes.cpp
 ) 
 
 set(CLIENT_SOURCES 

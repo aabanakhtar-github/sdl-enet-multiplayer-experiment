@@ -29,8 +29,7 @@ void ServerEventSystem::Init(ECS::Scene& scene)
 
     for (std::size_t i = 0; i < m_ClientToECS_ID.size(); ++i)
     {
-        m_ClientToECS_ID[i] = scene.CreateEntity(); 
-        BuildPlayer(scene, m_ClientToECS_ID[i]); 
+        m_ClientToECS_ID[i] = MakeEntity(scene, Prototype::PLAYER, Vector2(0, 0)); 
         auto& component = scene.GetComponent<PhysicsBodyComponent>(m_ClientToECS_ID[i]);
         component.SimulatesPhysics = true;  
         scene.SetEntityActive(m_ClientToECS_ID[i], false); 

@@ -62,7 +62,7 @@ quit:
 
         m_ServerEventSystem->SetupServer(7777); 
 
-        CreateGameLevel(m_Arena, true);
+        CreateGameLevel(m_Arena);
 
         ECS::SystemManager::Get().RegisterSystems({ m_ServerEventSystem, m_PhysicsSystem, m_GraphicsSystem });
         ECS::SystemManager::Get().InitAllSystems(m_Arena);  
