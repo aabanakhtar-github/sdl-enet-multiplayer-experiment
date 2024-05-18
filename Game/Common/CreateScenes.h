@@ -4,7 +4,17 @@
 #include "ECS.h"
 #include "Components.h"
 
-// TODO: replace with json serialization
+enum class Prototype
+{ 
+    PLAYER, 
+    TILE_1x1_GRASS, 
+    TILE_1x1_DIRT, 
+    TILE_2x1, 
+    TILE_3x1, 
+    TILE_3x2
+};
+
+inline ECS::EntityID Build(const Prototype type){return 0;}
 
 inline void BuildPlayer(ECS::Scene& scene, ECS::EntityID player)
 {
@@ -33,9 +43,6 @@ inline void CreateGameLevel(ECS::Scene& scene, bool server = false)
         .BoundingBox = { 0, 400, 700, 700 }, 
         .SimulatesPhysics = false
     };
-
-
 }
-
 
 #endif
