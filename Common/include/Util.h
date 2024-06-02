@@ -2,6 +2,7 @@
 #define UTIL_H
 
 #include "SDL.h"
+#include "SDL_image.h"
 #include "enet/enet.h"
 #include <iostream>
 #include <cassert>
@@ -54,6 +55,11 @@ inline void InitializeLibraries()
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
 	{
 		GlobalAppState::Get().SetAppState(AppState::AS_FAIL, "Cannot initalize SDL!");
+	}
+
+	if (IMG_Init(IMG_INIT_PNG) != 0) 
+	{
+		GlobalAppState::Get().SetAppState(AppState::AS_FAIL, "Cannot initalize SDL_image!"); 
 	}
 
 	if (enet_initialize() < 0) 

@@ -18,7 +18,8 @@ GraphicsSystem::GraphicsSystem()
 
 void GraphicsSystem::Init(ECS::Scene& scene)
 {
-	auto protected_load = [this](const std::string& file, const std::string& name) -> void {
+	auto protected_load = [this](const std::string& file, const std::string& name) -> void 
+	{
 		bool success = TextureManager::Get().AddTexture(*GameWindow, file, name);
 		if (!success) 
 		{
@@ -26,7 +27,7 @@ void GraphicsSystem::Init(ECS::Scene& scene)
 		}		
 	};
 
-	protected_load("foo.bmp", "foo");
+	protected_load("foo.png", "foo");
 }
 
 void GraphicsSystem::Update(ECS::Scene& scene, float delta)

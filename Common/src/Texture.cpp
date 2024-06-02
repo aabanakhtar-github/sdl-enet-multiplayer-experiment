@@ -64,7 +64,7 @@ bool TextureData::Load(Window& window, const std::string& filepath)
 	
 	m_Valid = false;
 	m_Renderer = window.m_SDLRenderer;
-	Surface = SDL_LoadBMP(filepath.c_str());	
+	Surface = IMG_Load(filepath.c_str());	
 	
 	if (Surface == nullptr)
 	{
@@ -73,7 +73,7 @@ bool TextureData::Load(Window& window, const std::string& filepath)
 	}
 	
 	SDL_Surface* window_surface = SDL_GetWindowSurface(window.m_SDLWindow);
-	// set the iamge to use the right screen format for rendering performance
+	// set the image to use the right screen format for rendering performance
 	SDL_Surface* optimized = SDL_ConvertSurface(Surface, window_surface->format, 0);
 	if (optimized == nullptr)
 	{
@@ -114,11 +114,16 @@ bool TextureData::Refresh()
 
 TextureData::~TextureData()
 {
-	if (Surface != nullptr)	
+	if (Surface != nullptr)
+	{
 		SDL_FreeSurface(Surface);
-	Surface = nullptr;
-
+	}	
+	
 	if (Texture != nullptr)
+	{	
 		SDL_DestroyTexture(Texture);
+	}
+
+	Surface = nullptr;
 	Texture = nullptr;
 }
