@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.26)
 project(CoreLib)
 
-find_package(SDL2 REQUIRED)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
+find_package(SDL2 REQUIRED)
+find_package(SDL2_image REQUIRED)
 # Building Enet cross platform requires source build i guess
 add_subdirectory(lib/enet-1.3.18)
 

@@ -3,6 +3,7 @@
 #include "Util.h"
 #include "Window.h"
 #include "AppState.h"
+#include "SDL_image.h"
 
 TextureData::TextureData()
 	: m_Height(0), m_Width(0), m_Renderer(nullptr), Surface(nullptr), Texture(nullptr), m_Valid(false)
