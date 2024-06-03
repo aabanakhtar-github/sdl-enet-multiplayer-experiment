@@ -1,10 +1,10 @@
+cmake_minimum_required(VERSION 3.26)
 project(CoreLib)
 
-add_subdirectory(vendor/SDL)
-set(SDL2IMAGE_SAMPLES OFF)
-add_subdirectory(vendor/SDL_image)
-add_subdirectory(vendor/enet)
+find_package(SDL2 REQUIRED)
 
+# Building Enet cross platform requires source build i guess
+add_subdirectory(lib/enet-1.3.18)
 
 set(SOURCES
 	src/Window.cpp
@@ -20,15 +20,15 @@ add_library(${PROJECT_NAME} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC 
 	include
-	vendor/SDL/include
-	vendor/enet/include
-	vendor/SDL_image/include
+	${SDL2_INCLUDE_DIRS}
+	${SDL2_IMAGE_INCLUDE_DIRS}
+	lib/enet-1.3.18/include
 )
 
 if (MSVC)
-	target_link_libraries(${PROJECT_NAME} SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image enet ws2_32.lib winmm.lib)
+	target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} enet ws2_32.lib winmm.lib)
 elseif(MINGW)
-	target_link_libraries(${PROJECT_NAME} mingw32 SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image enet)
+	target_link_libraries(${PROJECT_NAME} mingw32 ${SDL2_LIBRARIES} enet) 
 else()
-	target_link_libraries(${PROJECT_NAME} SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image enet)
+	target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} enet)
 endif()

@@ -1,3 +1,4 @@
+#define ENET_IMPLEMENTATION
 #include "Netcode/Client.h"
 #include "AppState.h"
 #include <iostream> 

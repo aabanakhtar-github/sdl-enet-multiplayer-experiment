@@ -1,9 +1,0 @@
-[submodule "Common/vendor/enet"]
-	path = Common/vendor/enet
-	url = https://github.com/lsalzman/enet.git
-[submodule "Common/vendor/SDL"]
-	path = Common/vendor/SDL
-	url = https://github.com/libsdl-org/SDL.git
-[submodule "Common/vendor/SDL_image"]
-	path = Common/vendor/SDL_image
-	url = https://github.com/libsdl-org/SDL_image.git

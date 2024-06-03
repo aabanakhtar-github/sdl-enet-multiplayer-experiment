@@ -27,7 +27,7 @@ void GraphicsSystem::Init(ECS::Scene& scene)
 		}		
 	};
 
-	protected_load("foo.png", "foo");
+	protected_load("foo.bmp", "foo");
 }
 
 void GraphicsSystem::Update(ECS::Scene& scene, float delta)

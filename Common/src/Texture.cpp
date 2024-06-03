@@ -64,7 +64,7 @@ bool TextureData::Load(Window& window, const std::string& filepath)
 	
 	m_Valid = false;
 	m_Renderer = window.m_SDLRenderer;
-	Surface = IMG_Load(filepath.c_str());	
+	Surface = SDL_LoadBMP(filepath.c_str());	
 	
 	if (Surface == nullptr)
 	{
