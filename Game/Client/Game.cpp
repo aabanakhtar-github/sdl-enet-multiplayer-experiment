@@ -2,6 +2,7 @@
 #include "Util.h"
 #include "CreateScenes.h"
 #include <thread>
+#include <iostream>
 #include "Timer.h"
 
 namespace Client {
@@ -10,12 +11,12 @@ namespace Client {
         : m_GameScenes(), m_SceneIndex(0), m_GraphicsSystem(new GraphicsSystem()), 
             m_PhysicsSystem(new PhysicsSystem()), m_PlayerInputSystem(new ClientEventSystem())
     {
-        InitializeLibraries();
+        initLibraries();
     }
 
     Game::~Game() 
     {
-        ShutdownLibraries();
+        shutdownLibraries();
     }
 
     void Game::Run() 
@@ -24,12 +25,12 @@ namespace Client {
 
         while (true) 
         {
-            switch (GlobalAppState::Get().GetAppState()) 
+            switch (GlobalAppState::get().getAppState()) 
             {
             case AppState::AS_FAIL:
                 std::cerr << "Errors have occured! Terminating...." << std::endl; 
 
-                for (auto &error : GlobalAppState::Get().GetError()) 
+                for (auto &error : GlobalAppState::get().getError()) 
                 {
                     std::cerr << "Error List: " << error << std::endl; 
                 }
@@ -54,19 +55,19 @@ quit:
     void Game::Init() 
     {
         // constructor fail => library init failed
-        if (GlobalAppState::Get().GetAppState() == AppState::AS_FAIL) 
+        if (GlobalAppState::get().getAppState() == AppState::AS_FAIL) 
         {
             return;  
         }
 
         CreateGameLevel(m_GameScenes[0]); 
 
-        ECS::SystemManager::Get().RegisterSystems({ m_PlayerInputSystem, m_GraphicsSystem });
-        ECS::SystemManager::Get().InitAllSystems(m_GameScenes[0]); 
+        ECS::SystemManager::get().RegisterSystems({ m_PlayerInputSystem, m_GraphicsSystem });
+        ECS::SystemManager::get().InitAllSystems(m_GameScenes[0]); 
 
-        if (GlobalAppState::Get().GetAppState() != AppState::AS_FAIL) 
+        if (GlobalAppState::get().getAppState() != AppState::AS_FAIL) 
         {
-            GlobalAppState::Get().SetAppState(AppState::AS_LOOP);
+            GlobalAppState::get().setAppState(AppState::AS_LOOP);
         }   
         
    }
@@ -75,7 +76,7 @@ quit:
     {
         static float delta_time = 0.0f; 
         Timer timer; 
-        ECS::SystemManager::Get().UpdateSystems(delta_time, m_GameScenes[0]); 
+        ECS::SystemManager::get().UpdateSystems(delta_time, m_GameScenes[0]); 
         delta_time = timer.GetDelta(); 
 
         if (delta_time < 1.0f / m_TargetFPS)

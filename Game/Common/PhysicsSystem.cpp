@@ -2,13 +2,13 @@
 #include "Util.h" 
 #include "PhysicsSystem.h"
 
-void PhysicsSystem::Update(ECS::Scene& scene, float delta)
+void PhysicsSystem::update(ECS::Scene &scene, float delta)
 {
 	ECS::SceneView<PhysicsBodyComponent> physics_bodies(scene);
 
 	for (auto ID : physics_bodies.GetEntities())
 	{
-		auto& component = scene.GetComponent<PhysicsBodyComponent>(ID);
+		auto& component = scene.getComponent<PhysicsBodyComponent>(ID);
 		if (component.SimulatesPhysics)
 		{
 			component.Acceleration.Y += m_Gravity;
@@ -20,7 +20,7 @@ void PhysicsSystem::Update(ECS::Scene& scene, float delta)
 		for (auto other : physics_bodies.GetEntities())
 		{
 			if (ID == other) continue;
-			auto& other_component = scene.GetComponent<PhysicsBodyComponent>(other); 
+			auto& other_component = scene.getComponent<PhysicsBodyComponent>(other);
 			if (IsColliding(other_component.BoundingBox, component.BoundingBox))
 			{
 				if (component.Velocity.X > 0)
@@ -40,7 +40,7 @@ void PhysicsSystem::Update(ECS::Scene& scene, float delta)
 		for (auto other : physics_bodies.GetEntities())
 		{
 			if (ID == other) continue;
-			auto& other_component = scene.GetComponent<PhysicsBodyComponent>(other); 
+			auto& other_component = scene.getComponent<PhysicsBodyComponent>(other);
 			if (IsColliding(other_component.BoundingBox, component.BoundingBox))
 			{
 				if (component.Velocity.Y > 0)
@@ -64,7 +64,7 @@ void PhysicsSystem::ResolveCollisions(PhysicsBodyComponent& component, ECS::Scen
 {
 	for (auto ID : scene_view.GetEntities())
 	{
-		PhysicsBodyComponent& other = scene.GetComponent<PhysicsBodyComponent>(ID);	
+		PhysicsBodyComponent& other = scene.getComponent<PhysicsBodyComponent>(ID);
 
 		if (component != other)
 		{

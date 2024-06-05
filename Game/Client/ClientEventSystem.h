@@ -22,9 +22,9 @@ class ClientEventSystem : public ECS::ISystem
     using ClientRollbackInfo = std::pair<ClientInfo, ClientUpdatePayload>; 
 public:
     ClientEventSystem() : m_CurrentScene(nullptr) {}
-    ~ClientEventSystem() { m_NetClient.Disconnect(3.0); } 
-    virtual void Init(ECS::Scene& scene) override; 
-    virtual void Update(ECS::Scene& scene, float deltatime) override; 
+    ~ClientEventSystem() { m_NetClient.disconnect(3.0); } 
+    virtual void init(ECS::Scene &scene) override;
+    virtual void update(ECS::Scene &scene, float deltatime) override;
 private:
     void UpdateGame(const std::string& packet_data);
     void OnRecievePacket(const PacketData& packet);

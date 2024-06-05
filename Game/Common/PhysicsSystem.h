@@ -10,8 +10,8 @@ class PhysicsSystem : public ECS::ISystem
 public:
 	PhysicsSystem() = default;
 	
-	virtual void Init(ECS::Scene& scene) {}
-	virtual void Update(ECS::Scene& scene, float delta) override;	
+	virtual void init(ECS::Scene &scene) {}
+	virtual void update(ECS::Scene &scene, float delta) override;
 private:
 	void ResolveCollisions(PhysicsBodyComponent& component, ECS::SceneView<PhysicsBodyComponent>& scene_view, ECS::Scene& scene);
 private:

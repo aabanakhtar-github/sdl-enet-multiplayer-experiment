@@ -12,27 +12,27 @@ namespace {
 
 using UserData = std::pair<ECS::EntityID, std::array<std::tuple<ClientInfo, ClientUpdatePayload, std::shared_ptr<ECS::EntityID>>, 1024>>;
 
-void ServerEventSystem::Init(ECS::Scene& scene) 
+void ServerEventSystem::init(ECS::Scene &scene)
 {
     for (auto&[client, data] : m_NetServer.GetClients())
     {
         auto temp = UserData();
         temp.first = -1; 
-        data.UserData = std::move(temp); 
+        data.user_data = std::move(temp); 
     }
 
-    EventHandler::Get().BindEvent(SDL_QUIT, [&](SDL_Event& e) -> void 
+    EventHandler::get().BindEvent(SDL_QUIT, [&](SDL_Event& e) -> void 
     {
-        GlobalAppState::Get().SetAppState(AppState::AS_QUIT);
+        GlobalAppState::get().setAppState(AppState::AS_QUIT);
     });
 
 
     for (std::size_t i = 0; i < m_ClientToECS_ID.size(); ++i)
     {
         m_ClientToECS_ID[i] = MakeEntity(scene, Prototype::PLAYER, Vector2(0, 0)); 
-        auto& component = scene.GetComponent<PhysicsBodyComponent>(m_ClientToECS_ID[i]);
-        component.SimulatesPhysics = true;  
-        scene.SetEntityActive(m_ClientToECS_ID[i], false); 
+        auto& component = scene.getComponent<PhysicsBodyComponent>(m_ClientToECS_ID[i]);
+        component.SimulatesPhysics = true;
+        scene.setEntityActive(m_ClientToECS_ID[i], false);
     }
 }
 
@@ -40,21 +40,21 @@ void ServerEventSystem::SetupServer(const std::uint16_t port)
 {
     m_NetServer = NetServer(port, 10, std::bind(&ServerEventSystem::OnRecievePacket, this, std::placeholders::_1));
 
-    if (!m_NetServer.GetValid()) 
+    if (!m_NetServer.getValid()) 
     {
-        GlobalAppState::Get().SetAppState(AppState::AS_FAIL, "Cannot initialize network!"); 
+        GlobalAppState::get().setAppState(AppState::AS_FAIL, "Cannot initialize network!"); 
     }
 }
 
 
 // Most un-ECSy update method ever!!!
-void ServerEventSystem::Update(ECS::Scene& scene, float delta)
+void ServerEventSystem::update(ECS::Scene &scene, float delta)
 {
     m_CurrentScene = &scene; 
 
-    if (m_NetServer.GetValid())
+    if (m_NetServer.getValid())
     {
-        m_NetServer.UpdateNetwork();
+        m_NetServer.updateNetwork();
          
         if (m_NetTickTimer.GetDelta() >= 1.0f / m_NetTickRate) 
         {
@@ -63,10 +63,10 @@ void ServerEventSystem::Update(ECS::Scene& scene, float delta)
             PacketData update_packet; 
             ServerUpdatePayload payload;
            
-            update_packet.Type = PT_GAME_UPDATE; 
+            update_packet.type = PT_GAME_UPDATE; 
             auto& clients = m_NetServer.GetClients();
-            payload.ClientsLength = clients.size(); 
-            payload.ClientStates.resize(payload.ClientsLength); 
+            payload.clients_size = clients.size(); 
+            payload.client_states.resize(payload.clients_size); 
 
             std::vector<std::size_t> connected_list;
             connected_list.reserve(10); 
@@ -76,9 +76,9 @@ void ServerEventSystem::Update(ECS::Scene& scene, float delta)
             {
                 connected_list.push_back(client.first); 
                 Vector2 client_position;
-                auto& component = scene.GetComponent<PhysicsBodyComponent>(m_ClientToECS_ID[client.first]); 
+                auto& component = scene.getComponent<PhysicsBodyComponent>(m_ClientToECS_ID[client.first]);
                 client_position = { static_cast<float>(component.BoundingBox.x), static_cast<float>(component.BoundingBox.y) };
-                payload.ClientStates[i] = ClientInfo { static_cast<int>(client.first), client_position }; 
+                payload.client_states[i] = ClientInfo { static_cast<int>(client.first), client_position }; 
                 ++i;
             }
 
@@ -89,39 +89,39 @@ void ServerEventSystem::Update(ECS::Scene& scene, float delta)
                 if (it == connected_list.end())
                 {
                     // make this client dissappear and reset their position 
-                    scene.SetEntityActive(m_ClientToECS_ID[i], false); 
-                    auto& component = scene.GetComponent<PhysicsBodyComponent>(m_ClientToECS_ID[i]);
+                    scene.setEntityActive(m_ClientToECS_ID[i], false);
+                    auto& component = scene.getComponent<PhysicsBodyComponent>(m_ClientToECS_ID[i]);
                     component = PhysicsBodyComponent { .BoundingBox = component.BoundingBox };
                     component.SimulatesPhysics = true; 
                 }
                 else 
                 {
-                    scene.SetEntityActive(m_ClientToECS_ID[i]); 
+                    scene.setEntityActive(m_ClientToECS_ID[i]);
                 } 
             }
 
-            update_packet.Data = PayloadToString<ServerUpdatePayload>(payload); 
-            update_packet.DataLength = update_packet.Data.size() + 1; 
+            update_packet.data = payloadToString<ServerUpdatePayload>(payload); 
+            update_packet.data_size = update_packet.data.size() + 1; 
 
-            m_NetServer.BroadcastPacket(update_packet, 0, false); 
+            m_NetServer.broadcastPacket(update_packet, 0, false); 
             m_NetTickTimer.Reset();
         }
     } 
 
-    EventHandler::Get().Update(); 
+    EventHandler::get().Update(); 
 }
 
 void ServerEventSystem::OnRecievePacket(const PacketData& packet) 
 {
-    switch (packet.Type) 
+    switch (packet.type) 
     {
     case PT_GAME_UPDATE: 
     {    
-        auto payload = PayloadFromString<ClientUpdatePayload>(packet.Data); 
+        auto payload = payloadFromString<ClientUpdatePayload>(packet.data); 
         ECS::EntityID client = m_ClientToECS_ID[packet.ID];
-        auto& component = m_CurrentScene->GetComponent<PhysicsBodyComponent>(client); 
+        auto& component = m_CurrentScene->getComponent<PhysicsBodyComponent>(client);
         //w = 15, a = 14, s = 13, d = 12
-        std::bitset<16> inputs = payload.InputBits;  
+        std::max_component_per_entity<16> inputs = payload.input_bits;  
         float x_scale = 0.0f, y_scale = 0.0f;
         std::cout << inputs << std::endl; 
 
@@ -146,7 +146,7 @@ void ServerEventSystem::OnRecievePacket(const PacketData& packet)
     case PT_CLIENT_JUMP: 
     {
         ECS::EntityID client = m_ClientToECS_ID[packet.ID]; 
-        auto& component = m_CurrentScene->GetComponent<PhysicsBodyComponent>(client); 
+        auto& component = m_CurrentScene->getComponent<PhysicsBodyComponent>(client);
         component.Velocity.Y = -m_PlayerAccelY; 
         break; 
     }

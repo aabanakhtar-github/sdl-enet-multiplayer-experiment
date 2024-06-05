@@ -8,8 +8,8 @@ public:
 	GraphicsSystem();
 
 	// Render Loop
-	virtual void Init(ECS::Scene& scene);
-	virtual void Update(ECS::Scene& scene, float delta);
+	virtual void init(ECS::Scene &scene);
+	virtual void update(ECS::Scene &scene, float delta);
 public:
 	bool DrawDebugRects;
 	std::unique_ptr<class Window> GameWindow;

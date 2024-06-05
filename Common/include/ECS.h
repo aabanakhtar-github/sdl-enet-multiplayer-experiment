@@ -8,94 +8,84 @@
 #include <vector> 
 #include <cassert>
 #include <queue> 
-#include <iostream> 
 #include <unordered_map>
 #include <memory>
 
-namespace ECS
-{
+namespace ECS {
 	using EntityID = std::uint32_t;
 	using ComponentID = int;
 
 	// end user should not need these internal constants
-	namespace __Internal
-	{
-		extern ComponentID g_next_componentID;
-		constexpr EntityID MAX_ENTITIES = 10'000;
-		constexpr ComponentID MAX_COMPONENT_PER_ENTITY = 32;
-		using ComponentMask = std::bitset<MAX_COMPONENT_PER_ENTITY + 1>;
+	namespace Internal {
+		extern ComponentID next_componentID;
+		constexpr EntityID max_entities = 10'000;
+		constexpr ComponentID max_component_per_entity = 32;
+		using ComponentMask = std::bitset<max_component_per_entity + 1>;
 	}
 
-	struct Component
-	{
-		Component() = default;
+	struct ComponentBase {
+		ComponentBase() = default;
 	};
 
 	template<typename T>
-	inline ComponentID GetComponentID() 
-	{
-		static_assert(std::is_base_of_v<Component, T> == true, "Cannot create a component ID for non-components!");
-		static ComponentID s_this_ID = __Internal::g_next_componentID++;
-		assert(s_this_ID < __Internal::MAX_COMPONENT_PER_ENTITY && "Too many components! Consider modifying ECS::__Internal::MAX_COMPONENT_PER_ENTITY");
+	inline ComponentID getComponentID() {
+		static_assert(std::is_base_of_v<ComponentBase, T> == true, "Cannot create a component ID for non-components!");
+		static ComponentID s_this_ID = Internal::next_componentID++;
+		assert(s_this_ID < Internal::max_component_per_entity && "Too many components! Consider modifying ECS::_Internal::MAX_COMPONENT_PER_ENTITY");
 		return s_this_ID;
 	}
 
 	// handly little class to help with managing all pools
-	class IComponentPool
-	{
+	class ComponentPoolBase {
 	};
 
 	template<typename T>
-	class ComponentPool : public IComponentPool
-	{
+	class ComponentPool : public ComponentPoolBase {
 	public:
-		explicit ComponentPool()
-		{
-			static_assert(std::is_base_of_v<Component, T>, "Cannot create pool of non component!");
+		explicit ComponentPool() {
+			static_assert(std::is_base_of_v<ComponentBase, T>, "Cannot create pool of non component!");
 		}
 
-		T& AddComponent(EntityID ID)
-		{
-			m_ComponentPool.emplace_back();
-			m_EntityToComponentMap[ID] = m_ComponentPool.size() - 1;
-			m_ComponentToEntityMap[m_ComponentPool.size() - 1] = ID;
-			return *(m_ComponentPool.end() - 1);
+		T& addComponent(EntityID ID) {
+			component_pool_.emplace_back();
+            entity_to_component_map_[ID] = component_pool_.size() - 1;
+            component_to_entity_map_[component_pool_.size() - 1] = ID;
+			return *(component_pool_.end() - 1);
 		}
 
-		T& GetComponent(EntityID ID) 
-		{
-			assert(m_EntityToComponentMap.contains(ID) && "Cannot get non existent component!");
-			return m_ComponentPool[m_EntityToComponentMap[ID]];
+		T& getComponent(EntityID ID) {
+			assert(entity_to_component_map_.contains(ID) && "Cannot get non existent component!");
+			return component_pool_[entity_to_component_map_[ID]];
 		}
 
-		void RemoveComponent(EntityID ID)
-		{
-			assert(m_EntityToComponentMap.contains(ID) && "Cannot erase a component on non existent entity!");
-			std::size_t last = m_ComponentPool.size() - 1;
-			std::size_t this_deletion_index = m_EntityToComponentMap[ID];
+		void removeComponent(EntityID ID) {
+			assert(entity_to_component_map_.contains(ID) && "Cannot erase a component on non existent entity!");
+			std::size_t last = component_pool_.size() - 1;
+			std::size_t this_deletion_index = entity_to_component_map_[ID];
 
-			// move the last element into the spot of the deleted if it isn't the last
-			// theoretically this if isn't needed but to save a little time :D
-			if (this_deletion_index != last)
-			{
-				std::swap(m_ComponentPool[this_deletion_index], m_ComponentPool[last]);
-				EntityID moved_entity = m_ComponentToEntityMap[last];
-				m_EntityToComponentMap[moved_entity] = this_deletion_index;
-				m_ComponentToEntityMap[this_deletion_index] = moved_entity;
+			// swap components
+			if (this_deletion_index != last) {
+				std::swap(component_pool_[this_deletion_index], component_pool_[last]);
+                // the id of the entity that just got swapped
+				EntityID moved_entity = component_to_entity_map_[last];
+                // point the swapped valid entity to it's component that's in the new position (where the deleted component *WAS*)
+                entity_to_component_map_[moved_entity] = this_deletion_index;
+                // same thing but point the moved component to the entity
+                component_to_entity_map_[this_deletion_index] = moved_entity;
 			}
 
-			m_ComponentPool.erase(m_ComponentPool.begin() + last);
-			m_ComponentToEntityMap.erase(last);
-			m_EntityToComponentMap.erase(ID);
+			component_pool_.erase(component_pool_.end());
+			component_to_entity_map_.erase(last);
+			entity_to_component_map_.erase(ID);
 		}
 
-	private:
-		ComponentPool(const ComponentPool&) = delete;
-		ComponentPool& operator = (const ComponentPool&) = delete;
+        ComponentPool(const ComponentPool&) = delete;
+        ComponentPool& operator = (const ComponentPool&) = delete;
 
-		std::unordered_map<EntityID, std::size_t> m_EntityToComponentMap;
-		std::unordered_map<std::size_t, EntityID> m_ComponentToEntityMap;
-		std::vector<T> m_ComponentPool;
+    private:
+		std::unordered_map<EntityID, std::size_t> entity_to_component_map_;
+		std::unordered_map<std::size_t, EntityID> component_to_entity_map_;
+		std::vector<T> component_pool_;
 	};
 
 	class ComponentManager
@@ -104,229 +94,193 @@ namespace ECS
 		explicit ComponentManager() = default;
 
 		template<typename T>
-		T& AddComponent(EntityID ID)
-		{
-			assert(m_ComponentPools.contains(GetComponentID<T>()) && "Unregistered component being added!");
-			return	GetComponentPoolOfType<T>()->AddComponent(ID);
+		T& AddComponent(EntityID ID) {
+			assert(m_ComponentPools.contains(getComponentID<T>()) && "Unregistered component being added!");
+			return getComponentPoolOfType<T>()->addComponent(ID);
 		}
 
 		template<typename T>
-		void RegisterComponent()
-		{
-			static_assert(std::is_base_of_v<Component, T>, "Cannot register non component!");
-			assert(!m_ComponentPools.contains(GetComponentID<T>()) && "Cannot make pool that exists!");
+		void registerComponent() {
+			static_assert(std::is_base_of_v<ComponentBase, T>, "Cannot register non component!");
+			assert(!m_ComponentPools.contains(getComponentID<T>()) && "Cannot make pool that exists!");
 			// Use std::make_shared for better performance and safety
-			std::shared_ptr<IComponentPool> pool = std::make_shared<ComponentPool<T>>();
-			m_ComponentPools[GetComponentID<T>()] = pool;
+			std::shared_ptr<ComponentPoolBase> pool = std::make_shared<ComponentPool<T>>();
+			m_ComponentPools[getComponentID<T>()] = pool;
 		}
 
 
 		template<typename T>
-		T& GetComponent(EntityID ID) 
-		{
-			auto selected_pool = GetComponentPoolOfType<T>();
-			return selected_pool->GetComponent(ID);
+		T& getComponent(EntityID ID) {
+			auto selected_pool = getComponentPoolOfType<T>();
+			return selected_pool->getComponent(ID);
 		}
 
 		template<typename T>
-		void RemoveComponent(EntityID ID)
-		{
-			assert(m_ComponentPools.contains(GetComponentID<T>()) && "Cannot remove a component type that doesn't exist!");
-			GetComponentPoolOfType<T>()->RemoveComponent(ID);
+		void removeComponent(EntityID ID) {
+			assert(m_ComponentPools.contains(getComponentID<T>()) && "Cannot remove a component type that doesn't exist!");
+            getComponentPoolOfType<T>()->removeComponent(ID);
 		}
 
 	private:
-		std::unordered_map<ComponentID, std::shared_ptr<IComponentPool>> m_ComponentPools;
+		std::unordered_map<ComponentID, std::shared_ptr<ComponentPoolBase>> m_ComponentPools;
 
 		template<typename T>
-		std::shared_ptr<ComponentPool<T>> GetComponentPoolOfType()
-		{
-			ComponentID type_ID = GetComponentID<T>();
+		std::shared_ptr<ComponentPool<T>> getComponentPoolOfType() {
+			ComponentID type_ID = getComponentID<T>();
 			assert(m_ComponentPools.contains(type_ID) && "Component Pool does not exist!");
-			return std::static_pointer_cast<ComponentPool<T>, IComponentPool>(m_ComponentPools[type_ID]);
+			return std::static_pointer_cast<ComponentPool<T>, ComponentPoolBase>(m_ComponentPools[type_ID]);
 		}
 	};
 
-	class Scene
-	{
+	class Scene {
 	public:
 		explicit Scene() :
-			m_FreeEntityIDs(__Internal::MAX_ENTITIES)
-		{
-			for (EntityID i = 0; i < __Internal::MAX_ENTITIES; ++i)
-			{
-				m_FreeEntityIDs[i] = i;
+                free_entity_IDs_(Internal::max_entities) {
+			for (EntityID i = 0; i < Internal::max_entities; ++i) {
+                free_entity_IDs_[i] = i;
 			}
 		}
 
-		[[nodiscard]] EntityID CreateEntity()
-		{
-			EntityID e = m_FreeEntityIDs.front();
-			assert(e < __Internal::MAX_ENTITIES && "Cannot have more than 10000 entites");
+		[[nodiscard]] EntityID createEntity() {
+			EntityID e = free_entity_IDs_.front();
+			assert(e < Internal::max_entities && "Cannot have more than 10000 entities");
 
-			auto default_mask = __Internal::ComponentMask(); 
-			default_mask[0] = 1; 	
-			m_ActiveEntities.emplace(e, default_mask);
-			m_FreeEntityIDs.pop_front();
+			auto default_mask = Internal::ComponentMask();
+			default_mask[0] = true;
+			active_entities_.emplace(e, default_mask);
+			free_entity_IDs_.pop_front();
 			return e;
 		}
 
-		void SetEntityActive(ECS::EntityID ID, bool active = true)
-		{
-			assert(m_ActiveEntities.contains(ID) && "Cannot edit activity of a non-existent entity!"); 
-			m_ActiveEntities[ID][0] = active; 
+		void setEntityActive(ECS::EntityID ID, bool active = true) {
+			assert(active_entities_.contains(ID) && "Cannot edit activity of a non-existent entity!");
+            active_entities_[ID][0] = active;
 		}
 
-		bool EntityExists(EntityID ID)
-		{
-			return m_ActiveEntities.contains(ID);
+		bool entityExists(EntityID ID) {
+			return active_entities_.contains(ID);
 		}
 
-		void DestroyEntity(EntityID ID)
-		{
-			assert(m_ActiveEntities.contains(ID) && "Cannot destroy non-existent entity!");
-			m_ActiveEntities[ID].reset();
-			m_FreeEntityIDs.push_front(ID);
-			m_ActiveEntities.erase(ID);
+		void destroyEntity(EntityID ID) {
+			assert(active_entities_.contains(ID) && "Cannot destroy non-existent entity!");
+			active_entities_[ID].reset();
+			free_entity_IDs_.push_front(ID);
+			active_entities_.erase(ID);
 		}
 
 		template<typename T>
-		void RegisterComponent()
-		{
-			GetComponentID<T>();
-			return m_ComponentManager.RegisterComponent<T>();
+		void registerComponent() {
+			getComponentID<T>();
+			return component_manager_.registerComponent<T>();
 		}
 
 		template<typename T>
-		T& AddComponent(EntityID ID)
-		{
-			assert(m_ActiveEntities[ID].test(GetComponentID<T>()) != true && "Cannot add already existing component!");
-			m_ActiveEntities[ID].set(GetComponentID<T>());
-			return	m_ComponentManager.AddComponent<T>(ID);
+		T& addComponent(EntityID ID) {
+			assert(active_entities_[ID].test(getComponentID<T>()) != true && "Cannot add already existing component!");
+			active_entities_[ID].set(getComponentID<T>());
+			return	component_manager_.AddComponent<T>(ID);
 		}
 
 		template<typename T>
-		T& GetComponent(EntityID ID)  
-		{
-			assert(m_ActiveEntities.contains(ID) && "Cannot get non-existent component!");
-			return m_ComponentManager.GetComponent<T>(ID);
+		T& getComponent(EntityID ID) {
+			assert(active_entities_.contains(ID) && "Cannot get non-existent component!");
+			return component_manager_.getComponent<T>(ID);
 		}
 
 		template<typename T>
-		void RemoveComponent(EntityID ID)
-		{
-			assert(m_ActiveEntities.contains(ID) && m_ActiveEntities[ID].test(GetComponentID<T>()) && "Cannot get non-existent component!");
-			m_ActiveEntities[ID].set(GetComponentID<T>(), false);
-			m_ComponentManager.RemoveComponent<T>(ID);
+		void removeComponent(EntityID ID) {
+			assert(active_entities_.contains(ID) && active_entities_[ID].test(getComponentID<T>()) && "Cannot get non-existent component!");
+			active_entities_[ID].set(getComponentID<T>(), false);
+            component_manager_.removeComponent<T>(ID);
 		}
 
+        Scene(const Scene&) = delete;
+        Scene& operator = (const Scene&) = delete;
 
-	private:
-		std::deque<EntityID> m_FreeEntityIDs;
-		std::unordered_map<EntityID, __Internal::ComponentMask> m_ActiveEntities;
-		ComponentManager m_ComponentManager;
+    private:
+		std::deque<EntityID> free_entity_IDs_;
+		std::unordered_map<EntityID, Internal::ComponentMask> active_entities_;
+		ComponentManager component_manager_;
 
 		template<typename... T>
 		friend class SceneView;
 
-		Scene(const Scene&) = delete;
-		Scene& operator = (const Scene&) = delete;
 	};
 
 	template<typename... T>
-	class SceneView
-	{
+	class SceneView {
 	public:
-		explicit SceneView(Scene& scene)
-		{
-			static_assert((std::is_base_of_v<Component, T> && ...), "SceneView only accepts components deriving from Component!");
-			m_Mask[0] = 1;  // it's already checking for active entities 
+		explicit SceneView(Scene& scene) {
+			static_assert((std::is_base_of_v<ComponentBase, T> && ...), "SceneView only accepts components deriving from Component!");
+            mask_[0] = true;  // it's already checking for active entities
 
-			if constexpr (sizeof...(T) > 0)
-			{
-				std::vector<ComponentID> IDs = { (GetComponentID<T>(), ...) };
-				for (ComponentID ID : IDs)
-				{
-					m_Mask.set(ID);
+			if constexpr (sizeof...(T) > 0) {
+				std::vector<ComponentID> IDs = { (getComponentID<T>(), ...) };
+
+                for (ComponentID ID : IDs) {
+					mask_.set(ID);
 				}
 
-				for (auto [ID, component_mask] : scene.m_ActiveEntities)
-				{
-					if ((component_mask & m_Mask) == m_Mask)
-					{
-						m_ValidEntities.push_back(ID);
+				for (auto [ID, component_mask] : scene.active_entities_) {
+					if ((component_mask & mask_) == mask_) {
+						valid_entities_.push_back(ID);
 					}
 				}
-			}
-			else
-			{
-				for (auto [ID, _] : scene.m_ActiveEntities)
-				{
-					m_ValidEntities.push_back(ID);
+			} else {
+				for (auto [ID, _] : scene.active_entities_) {
+					valid_entities_.push_back(ID);
 				}
 			}
 		}
 
-		const std::vector<EntityID>& GetEntities() const
-		{
-			return m_ValidEntities;
+		[[nodiscard]] const std::vector<EntityID>& GetEntities() const {
+			return valid_entities_;
 		}
 
+        SceneView(const SceneView&) = delete;
+        SceneView& operator = (const SceneView& other) = delete;
 	private:
-		__Internal::ComponentMask m_Mask;
-		std::vector<EntityID> m_ValidEntities;
-
-		SceneView(const SceneView&) = delete;
-		SceneView& operator = (const SceneView& other) = delete;
+		Internal::ComponentMask mask_;
+		std::vector<EntityID> valid_entities_;
 	};
 
-	class ISystem 
-	{
+	class ISystem {
 	public:
-		virtual void Update(Scene& scene, float delta) = 0;
-		virtual void Init(Scene& scene) = 0;
+		virtual void update(Scene& scene, float delta) = 0;
+		virtual void init(Scene& scene) = 0;
 	};
 
-	class SystemManager 
-	{
-		SystemManager(const SystemManager&) = delete; 
-		SystemManager& operator = (const SystemManager&) = delete; 
-		SystemManager() = default; 
-
+	class SystemManager {
+		SystemManager() = default;
 	public:
-		// cross engine compat
-		static SystemManager& Get() 
-		{
+        SystemManager(const SystemManager&) = delete;
+        SystemManager& operator = (const SystemManager&) = delete;
+
+        // cross engine compat
+		static SystemManager& get() {
 			static SystemManager manager; 
 			return manager;
 		}
 
-		void InitAllSystems(ECS::Scene& scene)
-		{
-			for (auto& system : m_Systems)
-			{
-				system->Init(scene);
+		void InitAllSystems(ECS::Scene& scene) {
+			for (auto& system : m_Systems) {
+                system->init(scene);
 			}
 		}
 
-		void RegisterSystem(ISystem* system)
-		{
+		void RegisterSystem(ISystem* system) {
 			m_Systems.push_back(std::unique_ptr<ISystem>(system));
 		}
 
-		void RegisterSystems(const std::vector<ISystem*>& systems)
-		{
-			for (auto& system : systems) 
-			{
+		void RegisterSystems(const std::vector<ISystem*>& systems) {
+			for (auto& system : systems) {
 				m_Systems.push_back(std::unique_ptr<ISystem>(system));
 			}	
 		}
 
-		void UpdateSystems(float delta, ECS::Scene& scene) 
-		{
-			for (auto& system : m_Systems)
-			{
-				system->Update(scene, delta);		
+		void UpdateSystems(float delta, ECS::Scene& scene) {
+			for (auto& system : m_Systems) {
+                system->update(scene, delta);
 			}
 		}
 

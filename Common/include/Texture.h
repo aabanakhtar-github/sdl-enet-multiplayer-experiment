@@ -57,9 +57,8 @@ class TextureManager
 public:
 	TextureManager() = default; 
 
-	TextureData& GetTexture(const std::string& key)
-	{
-		return m_Textures.at(key);
+	TextureData& GetTexture(const std::string& key)	{
+        return m_Textures[key];
 	}
 
 	bool AddTexture(Window& window, const std::string& filepath, const std::string& key)

@@ -6,17 +6,17 @@ ECS::EntityID MakeEntity(ECS::Scene& scene, const Prototype type, const Vector2&
     {
     case Prototype::PLAYER: 
     {
-        ECS::EntityID ID = scene.CreateEntity(); 
+        ECS::EntityID ID = scene.createEntity();
         int x = static_cast<int>(position.X); 
-        int y = static_cast<int>(position.Y); 
+        int y = static_cast<int>(position.Y);
 
-        scene.AddComponent<TextureComponent>(ID) = { 
+        scene.addComponent<TextureComponent>(ID) = {
             .SourceRectangle = Rect(x, y, 100, 100), 
             .TextureName = "foo",
             .Scale = Rect(x, y, 50, 50)
         };
 
-        scene.AddComponent<PhysicsBodyComponent>(ID) = { 
+        scene.addComponent<PhysicsBodyComponent>(ID) = {
             .BoundingBox = { 0, 0, 50, 50 }, 
             .SimulatesPhysics = false
         }; 
@@ -31,15 +31,15 @@ ECS::EntityID MakeEntity(ECS::Scene& scene, const Prototype type, const Vector2&
 
 void CreateGameLevel(ECS::Scene& scene) 
 {
-    scene.RegisterComponent<TextureComponent>();
-    scene.RegisterComponent<PhysicsBodyComponent>();
-    auto floor = scene.CreateEntity(); 
-    scene.AddComponent<TextureComponent>(floor) = TextureComponent {
+    scene.registerComponent<TextureComponent>();
+    scene.registerComponent<PhysicsBodyComponent>();
+    auto floor = scene.createEntity();
+    scene.addComponent<TextureComponent>(floor) = TextureComponent {
         .SourceRectangle = Rect(0, 0, 50, 50), 
         .TextureName = "foo",
         .Scale = Rect(0, 0, 700, 700)
-    }; 
-    scene.AddComponent<PhysicsBodyComponent>(floor) = PhysicsBodyComponent {
+    };
+    scene.addComponent<PhysicsBodyComponent>(floor) = PhysicsBodyComponent {
         .BoundingBox = { 0, 400, 700, 700 }, 
         .SimulatesPhysics = false
     };

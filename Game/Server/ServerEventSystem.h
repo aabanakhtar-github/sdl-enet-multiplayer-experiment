@@ -12,8 +12,8 @@ public:
     explicit ServerEventSystem(ECS::Scene& scene) : m_NetworkSequenceNumber(0) {}
     ~ServerEventSystem(); 
 
-    virtual void Init(ECS::Scene& scene) override; 
-    virtual void Update(ECS::Scene& scene, float delta) override; 
+    virtual void init(ECS::Scene &scene) override;
+    virtual void update(ECS::Scene &scene, float delta) override;
 
     void SetupServer(const std::uint16_t port); 
 private:

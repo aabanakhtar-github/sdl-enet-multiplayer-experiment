@@ -18,7 +18,7 @@ UserEventCreationInfo EventHandler::AddSDLUserEvent()
 	std::uint32_t EventID = SDL_RegisterEvents(1);
 	if (EventID == (std::uint32_t)-1)
 	{
-		return UserEventCreationInfo();
+		return {};
 	}
 	return UserEventCreationInfo{ true, EventID };
 }
@@ -52,3 +52,4 @@ void EventHandler::Update()
 		}
 	}
 }
+

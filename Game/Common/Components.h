@@ -12,25 +12,25 @@ struct PhysicsBodyComponent;
 
 inline void RegisterComponents(ECS::Scene& scene)
 {
-	scene.RegisterComponent<TextureComponent>();
-	scene.RegisterComponent<PositionComponent>();
-	scene.RegisterComponent<PhysicsBodyComponent>();
+    scene.registerComponent<TextureComponent>();
+    scene.registerComponent<PositionComponent>();
+    scene.registerComponent<PhysicsBodyComponent>();
 }
 
-struct TextureComponent : public ECS::Component
+struct TextureComponent : public ECS::ComponentBase
 {
 	Rect SourceRectangle = {};	
 	std::string TextureName = "";
 	Rect Scale = {}; // overrided by physics body bounding box, if present
 };
 
-struct PositionComponent : public ECS::Component
+struct PositionComponent : public ECS::ComponentBase
 {
 	Vector2 Position;
 	auto operator <=> (const PositionComponent&) const = default;
 };
 
-struct PhysicsBodyComponent : public ECS::Component
+struct PhysicsBodyComponent : public ECS::ComponentBase
 {
 	Rect BoundingBox = {};
 	Vector2 Velocity = {};

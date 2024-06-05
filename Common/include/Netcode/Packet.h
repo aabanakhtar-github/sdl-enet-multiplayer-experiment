@@ -13,8 +13,7 @@
 
 #include "enet/enet.h" 
 
-enum PacketType 
-{ 
+enum PacketType { 
     PT_GAME_UPDATE, 
     PT_CONNECT_UPDATE, 
     PT_DISCONNECT_UPDATE,
@@ -25,67 +24,58 @@ enum PacketType
     PT_INVALID
 };
 
-struct ClientInfo
-{
+struct ClientInfo {
     int ID = -1; 
-    Vector2 Position = { 0, 0 }; 
+    Vector2 position = { 0, 0 }; 
 }; 
 
-struct PacketData
-{
-    int Salt = 0;
+struct PacketData {
+    int salt = 0;
     int ID = -1;
-    PacketType Type = PT_INVALID; 
-    int DataLength = 0;
-    std::string Data; 
+    PacketType type = PT_INVALID; 
+    std::size_t data_size = 0;
+    std::string data; 
 };
 
 // Client side only
-struct ConnectDisconnectPayload 
-{
+struct ConnectDisconnectPayload {
     int ID = -1; 
-    int UsernameLength = 0; 
-    std::string UsernameRequest; 
+    std::size_t username_size = 0; 
+    std::string username_request; 
 }; 
 
-struct HandshakeChallengePayload 
-{
-    int ServerSalt = 0; 
-    int ClientSalt = 0; 
+struct HandshakeChallengePayload {
+    int server_salt = 0; 
+    int client_salt = 0; 
 }; 
 
 // Client side only
-struct HandshakeResponsePayload 
-{
-    int ChallengeResponse = 0; 
+struct HandshakeResponsePayload {
+    int response = 0; 
 }; 
 
-struct HandshakeAcceptRejectPayload 
-{
-    bool Accepted = false; 
-    int NewID = -1; 
+struct HandshakeAcceptRejectPayload {
+    bool accepted = false; 
+    int new_ID = -1; 
 }; 
 
-struct ClientUpdatePayload
-{
-    int RequestID = -1; 
-    std::uint16_t InputBits = 0; 
+struct ClientUpdatePayload {
+    std::uint16_t input_bits = 0; 
 };
 
-struct ServerUpdatePayload 
-{
-    int ClientsLength = 0; 
-    std::vector<ClientInfo> ClientStates; 
+struct ServerUpdatePayload {
+    std::size_t clients_size = 0; 
+    std::vector<ClientInfo> client_states; 
 }; 
 
 template<typename T> 
-std::string PayloadToString(const T& payload); 
+std::string payloadToString(const T& payload); 
 template<typename T> 
-T PayloadFromString(const std::string& payload); 
+T payloadFromString(const std::string& payload); 
 
 std::istream& operator >> (std::istream& in, PacketType& type) ;
-ENetPacket* PacketDataToNetPacket(const PacketData& packet, ENetPacketFlag flags); 
-PacketData PacketDataFromNetPacket(const ENetPacket* packet); 
+ENetPacket* packetDataToEnetPacket(const PacketData& packet, ENetPacketFlag flags); 
+PacketData packetDataFromEnetPacket(const ENetPacket* packet); 
 
 #endif // PACKET_H
 

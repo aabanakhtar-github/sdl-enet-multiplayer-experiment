@@ -9,41 +9,53 @@
 #include "Packet.h"
 #include <functional>
 
-struct ServerInfo 
-{
-    ENetPeer* Server; 
-    ENetAddress Address; 
+struct ServerInfo {
+    ENetPeer* server; 
+    ENetAddress address; 
 };
 
-class NetClient 
-{
+class NetClient {
     NetClient(const NetClient&) = delete; 
     NetClient& operator = (const NetClient&) = delete; 
 public: 
 // TODO: add copy and swap to make cleaner code / easy to update
-    explicit NetClient() : m_Client(nullptr), m_Server(nullptr, {}), m_Valid(false) {} 
+    NetClient();
     explicit NetClient(std::function<void(const PacketData&)> recv_callback); 
     NetClient(NetClient&&);
     NetClient& operator = (NetClient&&); 
     ~NetClient(); 
 
-    void UpdateNetwork(float block_time = 0.0, bool disconnection = false);
-    void Connect(const std::string& server_addr, const std::uint16_t port, float timeout); 
-    void Disconnect(float timeout);
-    void SendPacket(PacketData packet, int channel, bool reliable = false); 
+    void updateNetwork(const float block_time = 0.0, const bool disconnection = false);
+    void connectTo(const std::string& server_addr, const std::uint16_t port, const float timeout); 
+    void disconnect(const float timeout);
+    void sendPacket(PacketData& packet, const int channel, bool reliable = false); 
 
-    bool GetConnected() const { return m_Valid && m_Connected; } 
-    bool GetValid() const { return m_Valid; }
+    bool getConnected() const { return valid_ && connected_; } 
+    bool getValid() const { return valid_; }
+
+    friend void swap(NetClient& a, NetClient& b) { 
+        using std::swap;
+        swap(a.recv_callback_, b.recv_callback_); 
+        swap(a.client_, b.client_); 
+        swap(a.server_, b.server_);
+        swap(a.username_, b.username_);
+        swap(a.ID_, b.ID_); 
+        swap(a.valid_, b.valid_); 
+        swap(a.connected_, b.connected_); 
+        swap(a.client_salt_, b.client_salt_); 
+        swap(a.server_salt_, b.server_salt_);
+    }
+
 private: 
-    std::function<void(const PacketData&)> m_RecvCallback;
-    ENetHost* m_Client; 
-    ServerInfo m_Server; 
-    std::string m_Username;
-    bool m_Valid; 
-    bool m_Connected; 
-    int m_ID = -1;  
-    int m_ServerSalt = -1; 
-    int m_ClientSalt = -1; 
+    std::function<void(const PacketData&)> recv_callback_;
+    ENetHost* client_; 
+    ServerInfo server_; 
+    std::string username_ = "";
+    bool valid_ = false; 
+    bool connected_ = false; 
+    int ID_ = -1;
+    int server_salt_ = -1;
+    int client_salt_ = -1;
 };
 
 

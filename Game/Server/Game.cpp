@@ -13,12 +13,12 @@ namespace Server
         : m_Arena(), m_GraphicsSystem(new GraphicsSystem()), 
             m_PhysicsSystem(new PhysicsSystem()), m_ServerEventSystem(new ServerEventSystem(m_Arena))
     {
-        InitializeLibraries(); 
+        initLibraries(); 
     }
 
     Game::~Game() 
     {
-        ShutdownLibraries();
+        shutdownLibraries();
     }
 
     void Game::Run()
@@ -27,12 +27,12 @@ namespace Server
 
         while (true) 
         {
-            switch (GlobalAppState::Get().GetAppState()) 
+            switch (GlobalAppState::get().getAppState()) 
             {
             case AppState::AS_FAIL:
                 std::cerr << "Errors have occured! Terminating .... " << std::endl; 
 
-                for (auto& error : GlobalAppState::Get().GetError())
+                for (auto& error : GlobalAppState::get().getError())
                 {
                     std::cerr << "Error List: " << error << std::endl; 
                 }                    
@@ -55,7 +55,7 @@ quit:
 
     void Game::Init()
     {
-        if (GlobalAppState::Get().GetAppState() == AppState::AS_FAIL) 
+        if (GlobalAppState::get().getAppState() == AppState::AS_FAIL) 
         {
             return; 
         }
@@ -64,12 +64,12 @@ quit:
 
         CreateGameLevel(m_Arena);
 
-        ECS::SystemManager::Get().RegisterSystems({ m_ServerEventSystem, m_PhysicsSystem, m_GraphicsSystem });
-        ECS::SystemManager::Get().InitAllSystems(m_Arena);  
+        ECS::SystemManager::get().RegisterSystems({ m_ServerEventSystem, m_PhysicsSystem, m_GraphicsSystem });
+        ECS::SystemManager::get().InitAllSystems(m_Arena);  
 
-        if (GlobalAppState::Get().GetAppState() != AppState::AS_FAIL)
+        if (GlobalAppState::get().getAppState() != AppState::AS_FAIL)
         {
-            GlobalAppState::Get().SetAppState(AppState::AS_LOOP); 
+            GlobalAppState::get().setAppState(AppState::AS_LOOP, ""); 
         } 
     }
 
@@ -82,7 +82,7 @@ quit:
         static float delta_time = 0.0f; 
         
         Timer timer;
-        ECS::SystemManager::Get().UpdateSystems(delta_time, m_Arena); 
+        ECS::SystemManager::get().UpdateSystems(delta_time, m_Arena); 
 
         delta_time = timer.GetDelta();
         if (delta_time < 1.0 / m_TargetFPS)

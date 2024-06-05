@@ -2,47 +2,46 @@
 #include "Components.h"
 #include "Texture.h"
 #include "Window.h"
-#include "AppState.h"
-
 #include <memory>
 #include <algorithm>
+#include <iostream>
 
 GraphicsSystem::GraphicsSystem()
 	: DrawDebugRects(false), GameWindow(std::move(std::make_unique<Window>()))
 {
 	if (!GameWindow->InitWindow("Hello World!", 1280, 720))
 	{
-		GlobalAppState::Get().SetAppState(AppState::AS_FAIL, "Couldn't open window!");
+		GlobalAppState::get().setAppState(AppState::AS_FAIL, "Couldn't open window!");
 	}	
 }
 
-void GraphicsSystem::Init(ECS::Scene& scene)
+void GraphicsSystem::init(ECS::Scene &scene)
 {
 	auto protected_load = [this](const std::string& file, const std::string& name) -> void 
 	{
-		bool success = TextureManager::Get().AddTexture(*GameWindow, file, name);
+		bool success = TextureManager::get().AddTexture(*GameWindow, file, name);
 		if (!success) 
 		{
 			std::cerr << "Failed to load texture " << file << " with SDL_ERROR: " << SDL_GetError() << std::endl;
 		}		
 	};
 
-	protected_load("foo.bmp", "foo");
+	protected_load("tileset.png", "foo");
 }
 
-void GraphicsSystem::Update(ECS::Scene& scene, float delta)
+void GraphicsSystem::update(ECS::Scene &scene, float delta)
 { 
 	ECS::SceneView<TextureComponent, PositionComponent> IDs(scene);
 	ECS::SceneView<TextureComponent, PhysicsBodyComponent> PhysicsIDs(scene);
 
-	TextureManager& manager = TextureManager::Get();
+	TextureManager& manager = TextureManager::get();
 	
 	GameWindow->Clear();
 
 	for (ECS::EntityID ID : IDs.GetEntities())
 	{
-		TextureComponent& texture_ref = scene.GetComponent<TextureComponent>(ID);
-		PositionComponent& position_ref = scene.GetComponent<PositionComponent>(ID);
+		TextureComponent& texture_ref = scene.getComponent<TextureComponent>(ID);
+		PositionComponent& position_ref = scene.getComponent<PositionComponent>(ID);
 		TextureData& texture = manager.GetTexture(texture_ref.TextureName);
 
 		if (!texture.GetValid())
@@ -66,8 +65,8 @@ void GraphicsSystem::Update(ECS::Scene& scene, float delta)
     // physics entities don't have postion component, handle seperate
 	for (ECS::EntityID ID : PhysicsIDs.GetEntities())
 	{
-		TextureComponent& texture_ref = scene.GetComponent<TextureComponent>(ID);
-		PhysicsBodyComponent& physics_ref = scene.GetComponent<PhysicsBodyComponent>(ID);
+		TextureComponent& texture_ref = scene.getComponent<TextureComponent>(ID);
+		PhysicsBodyComponent& physics_ref = scene.getComponent<PhysicsBodyComponent>(ID);
 		TextureData& texture = manager.GetTexture(texture_ref.TextureName);
 
 		if (!texture.GetValid())

@@ -2,13 +2,10 @@
 #define SERVER_H 
 
 #include <cstdint> 
-#include <string> 
-#include <vector>
-#include <string> 
 #include <unordered_map>
-#include <queue>
-#include <functional> 
-#include <any>
+#include <queue> 
+#include <functional>
+#include <any> 
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     #define _WINSOCK_DEPRECATED_NO_WARNINGS
@@ -18,48 +15,56 @@
 #include "Packet.h"
 #include "NetUtil.h"
 
-struct ServerClientInfo : ClientInfo 
-{
-    ENetPeer* Peer = nullptr; 
-    int ClientSalt;
-    int ServerSalt;
-    std::size_t Hash;
-    std::any UserData; 
+struct ServerClientInfo : ClientInfo {
+    ENetPeer* peer = nullptr; 
+    int client_salt = -1;
+    int server_salt = -1;
+    std::size_t hash;
+    std::any user_data; 
 }; 
 
-class NetServer
-{
+class NetServer {
     NetServer(const NetServer&) = delete; 
     NetServer& operator = (const NetServer&) = delete; 
 public:
-    explicit NetServer() : m_Server(nullptr), m_Valid(false) {}
+    NetServer() : server_(nullptr) {}
     explicit NetServer(const std::uint16_t port, const std::size_t peers, std::function<void(const PacketData&)> recv_callback); 
     ~NetServer(); 
     NetServer(NetServer&&); 
     NetServer& operator = (NetServer&&); 
 
-    void SendPacketToPending(const PacketData& packet, const std::size_t hash, const int channel, bool reliable = false);
-    void SendPacketTo(PacketData packet, const std::size_t ID, const int channel, bool reliable = false); 
-    void BroadcastPacket(PacketData packet, const int channel, bool reliable = false); 
-    void BroadcastPacketAllExcept(PacketData packet, const int channel, const std::size_t ID, bool reliable);
-    void UpdateNetwork(float block_time = 0.0f); 
+    void sendPacketToPending(const PacketData& packet, const std::size_t hash, const int channel, bool reliable = false);
+    void sendPacketTo(PacketData& packet, const std::size_t ID, const int channel, bool reliable = false); 
+    void broadcastPacket(PacketData& packet, const int channel, bool reliable = false); 
+    void broadcastPacketToAllExcept(PacketData& packet, const int channel, const std::size_t ID, bool reliable = false);
+    void updateNetwork(float block_time = 0.0f); 
 
-    bool GetValid() const { return m_Valid; } 
-    std::unordered_map<std::size_t, ServerClientInfo>& GetClients() { return m_Clients; }
+    bool getValid() const { return valid_; } 
+    std::unordered_map<std::size_t, ServerClientInfo>& GetClients() { return clients_; }
+
+    friend void swap(NetServer& a, NetServer& b) { 
+        using std::swap;
+        swap(a.recv_callback_, b.recv_callback_);
+        swap(a.server_, b.server_); 
+        swap(a.valid_, b.valid_); 
+        swap(a.clients_, b.clients_);
+        swap(a.pending_connections_, b.pending_connections_);
+        swap(a.used_usernames_, b.used_usernames_); 
+        swap(a.ID_queue_, b.ID_queue_); 
+    }
 private:  
-    void RegisterConnection(ENetPeer* peer);
-
-    void SendHandshakeAccepted(const std::size_t ID, const bool accepted);
-    void SendHandshakeChallenge(const std::size_t hash); 
-    bool VerifyHandshakeChallenge(const std::size_t hash, const int result) const; 
-private: 
-    std::function<void(const PacketData&)> m_RecvCallback; 
-    ENetHost* m_Server; 
-    bool m_Valid; 
-    std::unordered_map<std::size_t, ServerClientInfo> m_Clients; 
-    std::unordered_map<std::size_t, ServerClientInfo> m_PendingConnections;  
-    std::vector<std::string> m_UsedUsernames = {"server"};
-    std::queue<std::size_t> m_ID_Queue;   
+    void registerConnection(ENetPeer* peer);
+    void sendHandshakeAccepted(const std::size_t ID, const bool accepted);
+    void sendHandshakeChallenge(const std::size_t hash); 
+    bool verifyHandshakeChallenge(const std::size_t hash, const int result) const; 
+private:   
+    std::function<void(const PacketData&)> recv_callback_; 
+    ENetHost* server_; 
+    bool valid_ = false; 
+    std::unordered_map<std::size_t, ServerClientInfo> clients_; 
+    std::unordered_map<std::size_t, ServerClientInfo> pending_connections_;  
+    std::vector<std::string> used_usernames_ = {"server"};
+    std::queue<std::size_t> ID_queue_;   
 }; 
 
 #endif // SERVER_H 

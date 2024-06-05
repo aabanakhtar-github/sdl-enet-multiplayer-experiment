@@ -3,10 +3,9 @@
 
 #include <unordered_map>
 #include <functional>
-#include <vector> 
-
+#include <vector>
+#include <cstdint>
 #include "SDL.h"
-
 #include "Util.h"
 
 struct UserEventCreationInfo
