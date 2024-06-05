@@ -5,9 +5,9 @@
 .vs/
 .vscode/
 .idea/
-cmake-build-debug/
-cmake-build-release/
-cmake-build-relwithdebinfo/
+cmake-build-debug/*
+cmake-build-release/*
+cmake-build-relwithdebinfo/*
 
 ### C++ ###
 # Prerequisites
@@ -138,3 +138,6 @@ out/*
 
 # but explicitly allow the .gitkeep file so this directory shall always exist
 !build/.gitkeep
+/cmake-build-debug/
+/cmake-build-release/
+/cmake-build-relwithdebinfo/
