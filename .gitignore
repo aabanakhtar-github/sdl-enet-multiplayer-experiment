@@ -4,6 +4,7 @@
 #Editor related 
 .vs/
 .vscode/
+.idea/
 
 ### C++ ###
 # Prerequisites
