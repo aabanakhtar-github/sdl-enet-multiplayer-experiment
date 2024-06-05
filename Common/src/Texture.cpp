@@ -55,7 +55,7 @@ TextureData& TextureData::operator = (TextureData other) {
 	return *this;
 }
 
-bool TextureData::Load(Window& window, const std::string& filepath) {
+bool TextureData::load(Window& window, const std::string& filepath) {
 	SDL_FreeSurface(Surface);
 	SDL_DestroyTexture(Texture);
 	
@@ -93,7 +93,7 @@ bool TextureData::Load(Window& window, const std::string& filepath) {
 	return true;
 }
 
-bool TextureData::Refresh() {
+bool TextureData::refresh() {
 	if (Texture == nullptr || Surface == nullptr) { 
 		return false; 
 	}

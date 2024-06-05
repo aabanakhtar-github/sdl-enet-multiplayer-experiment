@@ -3,8 +3,7 @@
 #include <iostream> 
 
 template<> 
-HandshakeChallengePayload payloadFromString<HandshakeChallengePayload>(const std::string& data)
-{
+HandshakeChallengePayload payloadFromString<HandshakeChallengePayload>(const std::string& data) {
     HandshakeChallengePayload return_value{ }; 
     std::istringstream ss(data); 
     ss >> return_value.server_salt; 
@@ -13,8 +12,7 @@ HandshakeChallengePayload payloadFromString<HandshakeChallengePayload>(const std
 }
 
 template<> 
-std::string payloadToString<HandshakeChallengePayload>(const HandshakeChallengePayload& data)
-{
+std::string payloadToString<HandshakeChallengePayload>(const HandshakeChallengePayload& data) {
     std::ostringstream ss; 
     ss << data.server_salt << " "; 
     ss << data.client_salt << " "; 
@@ -22,8 +20,7 @@ std::string payloadToString<HandshakeChallengePayload>(const HandshakeChallengeP
 }
 
 template<>
-HandshakeResponsePayload payloadFromString<HandshakeResponsePayload>(const std::string& data)
-{
+HandshakeResponsePayload payloadFromString<HandshakeResponsePayload>(const std::string& data) {
     HandshakeResponsePayload return_value;
     std::string data_copy = data;
     std::erase_if(data_copy, isspace); 
@@ -33,14 +30,12 @@ HandshakeResponsePayload payloadFromString<HandshakeResponsePayload>(const std::
 }
 
 template<> 
-std::string payloadToString<HandshakeResponsePayload>(const HandshakeResponsePayload& data) 
-{
+std::string payloadToString<HandshakeResponsePayload>(const HandshakeResponsePayload& data) {
     return std::to_string(data.response); 
 }
 
 template<> 
-HandshakeAcceptRejectPayload payloadFromString<HandshakeAcceptRejectPayload>(const std::string& data)
-{
+HandshakeAcceptRejectPayload payloadFromString<HandshakeAcceptRejectPayload>(const std::string& data) {
     HandshakeAcceptRejectPayload return_value;
     std::istringstream ss(data); 
     ss >> return_value.accepted; 
@@ -49,8 +44,7 @@ HandshakeAcceptRejectPayload payloadFromString<HandshakeAcceptRejectPayload>(con
 }
 
 template<> 
-std::string payloadToString<HandshakeAcceptRejectPayload>(const HandshakeAcceptRejectPayload& data)
-{
+std::string payloadToString<HandshakeAcceptRejectPayload>(const HandshakeAcceptRejectPayload& data) {
     std::ostringstream ss; 
     ss << data.accepted << " ";
     ss << data.new_ID << " "; 
@@ -59,38 +53,34 @@ std::string payloadToString<HandshakeAcceptRejectPayload>(const HandshakeAcceptR
 }
 
 template<> 
-ServerUpdatePayload payloadFromString<ServerUpdatePayload>(const std::string& data) 
-{
+ServerUpdatePayload payloadFromString<ServerUpdatePayload>(const std::string& data) {
     ServerUpdatePayload return_value; 
     std::istringstream ss(data); 
     ss >> return_value.clients_size; 
     
-    for (int i = 0; i < return_value.clients_size; ++i)
-    {
+    for (int i = 0; i < return_value.clients_size; ++i) {
         ClientInfo client; 
-        ss >> client.ID >> client.position.X >> client.position.Y; 
-        return_value.client_states.emplace_back(std::move(client));
+        ss >> client.ID >> client.position.x >> client.position.y;
+        return_value.client_states.push_back(client);
     }
 
     return return_value;
 }
 
 template<>
-std::string payloadToString<ServerUpdatePayload>(const ServerUpdatePayload& payload)
-{
+std::string payloadToString<ServerUpdatePayload>(const ServerUpdatePayload& payload) {
     std::ostringstream ss; 
-    ss << payload.clients_size << " "; 
-    for (auto& client : payload.client_states)
-    {
-        ss << client.ID << " " << client.position.X << " " << client.position.Y << " ";
+    ss << payload.clients_size << " ";
+
+    for (auto& client : payload.client_states) {
+        ss << client.ID << " " << client.position.x << " " << client.position.y << " ";
     } 
 
     return ss.str();
 }
 
 template<> 
-std::string payloadToString<ClientUpdatePayload>(const ClientUpdatePayload& payload) 
-{
+std::string payloadToString<ClientUpdatePayload>(const ClientUpdatePayload& payload) {
     std::ostringstream ss; 
     ss << payload.input_bits << " "; 
 
@@ -98,16 +88,14 @@ std::string payloadToString<ClientUpdatePayload>(const ClientUpdatePayload& payl
 }
 
 template<> 
-ClientUpdatePayload payloadFromString<ClientUpdatePayload>(const std::string& data) 
-{
+ClientUpdatePayload payloadFromString<ClientUpdatePayload>(const std::string& data) {
     ClientUpdatePayload return_value; 
     std::istringstream ss(data);
     ss >> return_value.input_bits; 
     return return_value;  
 }
 
-std::istream& operator >> (std::istream& in, PacketType& type)
-{
+std::istream& operator >> (std::istream& in, PacketType& type) {
     int val; 
     in >> val; 
     type = static_cast<PacketType>(val);
@@ -115,8 +103,7 @@ std::istream& operator >> (std::istream& in, PacketType& type)
 }
 
 
-ENetPacket* packetDataToEnetPacket(const PacketData& packet, ENetPacketFlag flags)
-{
+ENetPacket* packetDataToEnetPacket(const PacketData& packet, ENetPacketFlag flags) {
     std::stringstream ss(std::ios_base::out);
     ss << packet.ID << " ";
     ss << packet.salt << " ";  
@@ -127,10 +114,8 @@ ENetPacket* packetDataToEnetPacket(const PacketData& packet, ENetPacketFlag flag
     return enet_packet_create(data.c_str(), data.size() + 1, flags);  
 }
 
-PacketData packetDataFromEnetPacket(const ENetPacket* packet) 
-{
-    if (packet == nullptr) 
-    {
+PacketData packetDataFromEnetPacket(const ENetPacket* packet) {
+    if (packet == nullptr) {
         std::cerr << "Given a null packet to process in PacketDataFromNetPacket. " << std::endl; 
         return {}; 
     }

@@ -21,11 +21,9 @@ void ClientEventSystem::init(ECS::Scene &scene) {
     // TODO refactor into reusable function that allows game to persist across multiple servers
     m_NetClient.connectTo("127.0.0.1", 7777, 3.0); 
 
-    EventHandler::get().BindEvent(SDL_KEYDOWN, [&](SDL_Event& e) -> void { 
-        switch (e.key.keysym.sym) 
-        {
-        case SDLK_SPACE:
-        {
+    EventHandler::get().bindEvent(SDL_KEYDOWN, [&](SDL_Event& e) -> void {
+        switch (e.key.keysym.sym) {
+        case SDLK_SPACE: {
             PacketData packet; 
             packet.type = PT_CLIENT_JUMP; 
             packet.data_size = 0; 
@@ -37,15 +35,14 @@ void ClientEventSystem::init(ECS::Scene &scene) {
         }  
     });   
 
-    EventHandler::get().BindEvent(SDL_QUIT, [&](SDL_Event& e) -> void {
+    EventHandler::get().bindEvent(SDL_QUIT, [&](SDL_Event& e) -> void {
         GlobalAppState::get().setAppState(AppState::AS_QUIT);
     });
 
     // Create Players 
-    for (std::size_t i = 0; i < m_OtherPeers.size(); ++i)
-    {
-        m_OtherPeers[i].ID = MakeEntity(scene, Prototype::PLAYER, Vector2(0, 0));
-        scene.setEntityActive(m_OtherPeers[i].ID, false);
+    for (auto & m_OtherPeer : m_OtherPeers) {
+        m_OtherPeer.ID = makeEntity(scene, Prototype::PLAYER, Vector2(0, 0));
+        scene.setEntityActive(m_OtherPeer.ID, false);
     }
  
 }
@@ -70,7 +67,7 @@ void ClientEventSystem::Update(ECS::Scene& scene, float delta)
 
 void ClientEventSystem::update(ECS::Scene &scene, float delta)
 {
-    EventHandler::get().Update(); 
+    EventHandler::get().update();
     m_CurrentScene = &scene;
 
     std::uint16_t inputs = GetKeyboardBits(); 
@@ -131,7 +128,7 @@ void ClientEventSystem::OnRecievePacket(const PacketData &packet)
     {
     case PT_GAME_UPDATE: 
         // resync / reconcile / interpolate
-        m_LerpTimer.Reset(); 
+        m_LerpTimer.reset();
         UpdateGame(packet.data); 
         break;     
     }
@@ -147,7 +144,7 @@ void ClientEventSystem::ReconcileWithServer()
 
 }
 
-std::uint16_t ClientEventSystem::GetKeyboardBits()
+std::uint16_t ClientEventSystem::GetKeyboardBits() // NOLINT(*-convert-member-functions-to-static)
 {
     const std::uint8_t* keyboard_state = SDL_GetKeyboardState(nullptr); 
     std::uint16_t bits = 0;
@@ -156,22 +153,22 @@ std::uint16_t ClientEventSystem::GetKeyboardBits()
     return bits; 
 }
 
-namespace { constexpr float g_smooth = 1.3f; }
-
 void ClientEventSystem::InterpolateEntities()
 {
+    static constexpr float smooth = 1.3f;
+
     for (auto& client : m_OtherPeers)
     {
         auto& component = m_CurrentScene->getComponent<PhysicsBodyComponent>(client.ID);
-        const float T = (std::min)(1.0f, m_LerpTimer.GetDelta() / (1.0f / 10.0f)) * g_smooth; 
+        const float T = (std::min)(1.0f, m_LerpTimer.getDelta() / (1.0f / 10.0f)) * smooth;
 
         Vector2 new_position = {
-            std::lerp(client.position.X, client.LerpPosition.X, T), 
-            std::lerp(client.position.Y, client.LerpPosition.Y, T)
+            std::lerp(client.position.x, client.LerpPosition.x, T),
+            std::lerp(client.position.y, client.LerpPosition.y, T)
         }; 
 
         client.position = std::move(new_position); 
-        component.BoundingBox.x = static_cast<int>(new_position.X);
-        component.BoundingBox.y = static_cast<int>(new_position.Y);
+        component.BoundingBox.x = static_cast<int>(new_position.x);
+        component.BoundingBox.y = static_cast<int>(new_position.y);
     }
 }

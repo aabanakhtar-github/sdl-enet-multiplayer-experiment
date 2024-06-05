@@ -29,7 +29,7 @@ void ServerEventSystem::init(ECS::Scene &scene)
 
     for (std::size_t i = 0; i < m_ClientToECS_ID.size(); ++i)
     {
-        m_ClientToECS_ID[i] = MakeEntity(scene, Prototype::PLAYER, Vector2(0, 0)); 
+        m_ClientToECS_ID[i] = makeEntity(scene, Prototype::PLAYER, Vector2(0, 0));
         auto& component = scene.getComponent<PhysicsBodyComponent>(m_ClientToECS_ID[i]);
         component.SimulatesPhysics = true;
         scene.setEntityActive(m_ClientToECS_ID[i], false);
@@ -56,7 +56,7 @@ void ServerEventSystem::update(ECS::Scene &scene, float delta)
     {
         m_NetServer.updateNetwork();
          
-        if (m_NetTickTimer.GetDelta() >= 1.0f / m_NetTickRate) 
+        if (m_NetTickTimer.getDelta() >= 1.0f / m_NetTickRate)
         {
             // send an update packet
             // TODO: Wrok on

@@ -14,8 +14,8 @@ enum class Prototype
     TILE_3x2
 };
 
-ECS::EntityID MakeEntity(ECS::Scene& scene, const Prototype type, const Vector2& Position); 
-void CreateGameLevel(ECS::Scene& scene); 
+ECS::EntityID makeEntity(ECS::Scene& scene, const Prototype type, const Vector2& position);
+void createGameLevel(ECS::Scene& scene);
 
 
 #endif

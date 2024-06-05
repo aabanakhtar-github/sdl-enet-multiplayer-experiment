@@ -60,9 +60,9 @@ quit:
             return; 
         }
 
-        m_ServerEventSystem->SetupServer(7777); 
+        m_ServerEventSystem->SetupServer(7777);
 
-        CreateGameLevel(m_Arena);
+        createGameLevel(m_Arena);
 
         ECS::SystemManager::get().RegisterSystems({ m_ServerEventSystem, m_PhysicsSystem, m_GraphicsSystem });
         ECS::SystemManager::get().InitAllSystems(m_Arena);  
@@ -84,11 +84,11 @@ quit:
         Timer timer;
         ECS::SystemManager::get().UpdateSystems(delta_time, m_Arena); 
 
-        delta_time = timer.GetDelta();
+        delta_time = timer.getDelta();
         if (delta_time < 1.0 / m_TargetFPS)
             timer.Block(1.0 / m_TargetFPS - delta_time); 
 
-        delta_time = timer.GetDelta();
+        delta_time = timer.getDelta();
     }
 
 }

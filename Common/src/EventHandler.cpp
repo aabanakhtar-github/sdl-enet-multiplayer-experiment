@@ -1,35 +1,28 @@
 #include "EventHandler.h"
 
-void EventHandler::BindEvent(SDL_EventType event, std::function<void(SDL_Event&)> binding)
-{
-	if (m_Bindings.contains(event))
-	{
-		m_Bindings[event].push_back(binding);
-	} 
-	else
-	{
-		m_Bindings[event] = { binding };
+void EventHandler::bindEvent(SDL_EventType event, const std::function<void(SDL_Event&)>& binding) {
+	if (bindings_.contains(event)) {
+		bindings_[event].push_back(binding);
+	} else {
+        bindings_[event] = {binding };
 	}
 }
 
 
-UserEventCreationInfo EventHandler::AddSDLUserEvent()
-{
+UserEventCreationInfo EventHandler::addSDLUserEvent() {
 	std::uint32_t EventID = SDL_RegisterEvents(1);
-	if (EventID == (std::uint32_t)-1)
-	{
+	if (EventID == (std::uint32_t) - 1) {
 		return {};
 	}
+
 	return UserEventCreationInfo{ true, EventID };
 }
 
-void EventHandler::PushSDLEvent(SDL_Event& event)
-{
+void EventHandler::pushSDLEvent(SDL_Event& event) {
 	SDL_PushEvent(&event);
 }
 
-void EventHandler::PushUserEvent(SDL_EventType event, void* data1, void* data2)
-{
+void EventHandler::pushUserEvent(SDL_EventType event, void* data1, void* data2) {
 	SDL_Event user_event;
 	user_event.type = event; 
 	user_event.user.data1 = data1;
@@ -37,16 +30,12 @@ void EventHandler::PushUserEvent(SDL_EventType event, void* data1, void* data2)
 	SDL_PushEvent(&user_event);
 }
 
-void EventHandler::Update()
-{
+void EventHandler::update() {
 	SDL_Event event;
-	while (SDL_PollEvent(&event))
-	{
-		if (m_Bindings.contains((SDL_EventType)event.type))
-		{
-			auto bindings = m_Bindings[(SDL_EventType)event.type];
-			for (auto &func : bindings)
-			{
+	while (SDL_PollEvent(&event)) {
+		if (bindings_.contains((SDL_EventType)event.type)) {
+			auto bindings = bindings_[(SDL_EventType)event.type];
+			for (auto &func : bindings) {
 				func(event);
 			}
 		}

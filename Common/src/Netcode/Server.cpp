@@ -65,8 +65,8 @@ void NetServer::sendHandshakeChallenge(const std::size_t hash) {
         // windows api issue where they used gosh darn macros for "m"
         constexpr int high = (std::numeric_limits<int>::max)();
         HandshakeChallengePayload payload;  
-        int server_salt = Random(1, high); 
-        int client_salt = Random(1, high);  
+        int server_salt = random(1, high);
+        int client_salt = random(1, high);
         it->second.server_salt = server_salt; 
         it->second.client_salt = client_salt; 
         payload.client_salt = client_salt; 

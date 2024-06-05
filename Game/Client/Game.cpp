@@ -60,7 +60,7 @@ quit:
             return;  
         }
 
-        CreateGameLevel(m_GameScenes[0]); 
+        createGameLevel(m_GameScenes[0]);
 
         ECS::SystemManager::get().RegisterSystems({ m_PlayerInputSystem, m_GraphicsSystem });
         ECS::SystemManager::get().InitAllSystems(m_GameScenes[0]); 
@@ -77,14 +77,14 @@ quit:
         static float delta_time = 0.0f; 
         Timer timer; 
         ECS::SystemManager::get().UpdateSystems(delta_time, m_GameScenes[0]); 
-        delta_time = timer.GetDelta(); 
+        delta_time = timer.getDelta();
 
         if (delta_time < 1.0f / m_TargetFPS)
         {
             timer.Block(1.0f / m_TargetFPS - delta_time);
         }
 
-        delta_time = timer.GetDelta();
+        delta_time = timer.getDelta();
     }
 
     void Game::Quit() 

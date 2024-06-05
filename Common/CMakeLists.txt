@@ -31,7 +31,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 if (MSVC)
 	target_link_libraries(${PROJECT_NAME} SDL2::SDL2main SDL2::SDL2 SDL2_image enet ws2_32.lib winmm.lib)
 elseif(MINGW)
-	target_link_libraries(${PROJECT_NAME} mingw32 ${SDL2_LIBRARIES} SDL2_image enet) 
+	target_link_libraries(${PROJECT_NAME} mingw32 SDL2::SDL2main SDL2::SDL2 SDL2_image enet)
 else()
 	target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} SDL2_image enet)
 endif()

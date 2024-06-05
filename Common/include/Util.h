@@ -14,22 +14,20 @@
 			classname& operator = (const classname&) = delete; \
 			classname(const classname&) = delete; \
 
-enum class AppState
-{
+enum class AppState {
 	AS_FAIL, 
 	AS_QUIT,
 	AS_LOOP
 };
 
-class GlobalAppState
-{
+class GlobalAppState {
 	MAKE_SINGLETON(GlobalAppState)
 
 	GlobalAppState() : app_state_(AppState::AS_LOOP) {}
 public:
-	void setAppState(const AppState state, const std::string& error = "");
-	AppState getAppState() const {	return app_state_; }
-	const std::vector<std::string>& getError() const { return error_;}
+	void setAppState(AppState state, const std::string& error = "");
+	[[nodiscard]] AppState getAppState() const {	return app_state_; }
+	[[nodiscard]] const std::vector<std::string>& getError() const { return error_;}
 private:
 	AppState app_state_;
 	std::vector<std::string> error_;

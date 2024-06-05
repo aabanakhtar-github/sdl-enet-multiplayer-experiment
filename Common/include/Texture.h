@@ -4,14 +4,12 @@
 #include <string> 
 #include <cstdint> 
 #include <unordered_map>
-
-#include "SDL.h" 
+#include "SDL.h"
 #include "Util.h"
 
 class Window;
 
-class TextureData
-{
+class TextureData {
 public:
 	TextureData();
 	TextureData(const TextureData&);
@@ -20,12 +18,11 @@ public:
 	TextureData& operator = (TextureData&&) noexcept;
 	~TextureData();
 	
-	bool Load(Window& window, const std::string& filepath);
-	// call after making modifications to the surface, reloading the texture basically	
-	bool Refresh();
+	bool load(Window& window, const std::string& filepath);
+    // TODO: never tested
+    bool refresh();
 	// cool feature
-	friend void swap(TextureData& a, TextureData& b)
-	{
+	friend void swap(TextureData& a, TextureData& b) {
 		using std::swap;
 		swap(a.Surface, b.Surface);
 		swap(a.Texture, b.Texture);
@@ -35,10 +32,10 @@ public:
 		swap(a.m_Valid, b.m_Valid);
 	}
 
-	int GetWidth() const { return  m_Width; }
-	int GetHeight() const { return m_Height; }
-	bool GetValid() const { return m_Valid; }
-public: 
+	[[nodiscard]] int GetWidth() const { return  m_Width; }
+	[[nodiscard]] int GetHeight() const { return m_Height; }
+	[[nodiscard]] bool GetValid() const { return m_Valid; }
+public:
 	SDL_Surface* Surface; 
 	SDL_Texture* Texture;
 
@@ -64,7 +61,7 @@ public:
 	bool AddTexture(Window& window, const std::string& filepath, const std::string& key)
 	{
 		TextureData t;
-		if(!t.Load(window, filepath))
+		if(!t.load(window, filepath))
 		{
 			return false;
 		}

@@ -4,33 +4,29 @@
 #include <chrono>
 #include <thread>
 
-class Timer 
-{
+class Timer {
 public:
-    Timer() 
-    {
-        m_StartTime = m_Clock.now();
+    Timer() {
+        start_time_ = std::chrono::steady_clock::now();
     }
 
-    float GetDelta()
-    {
-        auto m_EndTime = m_Clock.now(); 
+   float getDelta() {
+        auto end_time = std::chrono::steady_clock::now();
         return static_cast<float>
-            (std::chrono::duration_cast<std::chrono::milliseconds>(m_EndTime - m_StartTime).count()) / 1000.f; 
+            (std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time_).count()) / 1000.f;
+   }
+
+    void reset() {
+        start_time_ = std::chrono::steady_clock::now();
     }
 
-    void Reset()
-    {
-        m_StartTime = m_Clock.now(); 
-    }
-
-    void Block(float time)
-    {
+    static void Block(float time) {
         auto t = std::chrono::milliseconds(static_cast<long long>(time * 1000));
         std::this_thread::sleep_for(t);
     }
+
 private:
-    std::chrono::steady_clock m_Clock;
-    std::chrono::time_point<decltype(m_Clock)> m_StartTime, m_EndTime;
+    std::chrono::time_point<std::chrono::steady_clock> start_time_;
 };
+
 #endif //TIMER_H

@@ -53,7 +53,8 @@ void GraphicsSystem::update(ECS::Scene &scene, float delta)
 		assert((texture_ref.Scale.w > 0 && texture_ref.Scale.h > 0) && "Cannot create render image of scale <0!");
 
 		Rect src = texture_ref.SourceRectangle;
-		Rect destination { (int)position_ref.Position.X, (int)position_ref.Position.Y, texture_ref.Scale.w, texture_ref.Scale.h };
+		Rect destination {
+            static_cast<int>(position_ref.Position.x), static_cast<int>(position_ref.Position.y), texture_ref.Scale.w, texture_ref.Scale.h };
 		GameWindow->RenderTexture(texture, &src, &destination);
 	
 		if (DrawDebugRects)	
@@ -65,8 +66,8 @@ void GraphicsSystem::update(ECS::Scene &scene, float delta)
     // physics entities don't have postion component, handle seperate
 	for (ECS::EntityID ID : PhysicsIDs.GetEntities())
 	{
-		TextureComponent& texture_ref = scene.getComponent<TextureComponent>(ID);
-		PhysicsBodyComponent& physics_ref = scene.getComponent<PhysicsBodyComponent>(ID);
+		auto& texture_ref = scene.getComponent<TextureComponent>(ID);
+		auto& physics_ref = scene.getComponent<PhysicsBodyComponent>(ID);
 		TextureData& texture = manager.GetTexture(texture_ref.TextureName);
 
 		if (!texture.GetValid())

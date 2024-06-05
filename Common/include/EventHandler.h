@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "NotInitializedField"
 #ifndef EVENT_HANDLER_H
 #define EVENT_HANDLER_H 
 
@@ -10,7 +12,7 @@
 
 struct UserEventCreationInfo
 {
-	bool Valid = false;
+	bool valid = false;
 	std::uint32_t ID = (std::uint32_t)-1;
 };
 
@@ -20,21 +22,23 @@ class EventHandler
 public:
 	EventHandler() = default;
 	
-	void Update();	
-	void BindEvent(SDL_EventType event, std::function<void(SDL_Event&)> binding);
+	void update();
+	void bindEvent(SDL_EventType event, const std::function<void(SDL_Event&)>& binding);
 	
 	// save this value to access the created event later	
-	[[nodiscard]] UserEventCreationInfo AddSDLUserEvent();
-	void PushSDLEvent(SDL_Event& event);
+	[[nodiscard]] static UserEventCreationInfo addSDLUserEvent();
+	static void pushSDLEvent(SDL_Event& event);
 
-	// WARNING
+	// SELF-WARNING
 	// If pushing data, ownership will not be taken
 	// You must free the data yourself
-	void PushUserEvent(SDL_EventType event, void* data1 = nullptr,  void* data2 = nullptr);
+	static void pushUserEvent(SDL_EventType event, void* data1 = nullptr,  void* data2 = nullptr);
 private:
-	std::unordered_map<SDL_EventType, std::vector<std::function<void(SDL_Event&)>>> m_Bindings;
+	std::unordered_map<SDL_EventType, std::vector<std::function<void(SDL_Event&)>>> bindings_;
 };
 
 #endif // EVENT_HANDLER_H
 
 
+
+#pragma clang diagnostic pop
