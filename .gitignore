@@ -5,6 +5,9 @@
 .vs/
 .vscode/
 .idea/
+cmake-build-debug/
+cmake-build-release/
+cmake-build-relwithdebinfo/
 
 ### C++ ###
 # Prerequisites
