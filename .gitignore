@@ -1,6 +1,7 @@
 # Created by https://www.gitignore.io/api/c++,linux,macos,cmake,windows
 # Edit at https://www.gitignore.io/?templates=c++,linux,macos,cmake,windows
 
+# it wont work
 #Editor related 
 .vs/
 .vscode/
