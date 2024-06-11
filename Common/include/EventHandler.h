@@ -10,14 +10,12 @@
 #include "SDL.h"
 #include "Util.h"
 
-struct UserEventCreationInfo
-{
+struct UserEventCreationInfo {
 	bool valid = false;
 	std::uint32_t ID = (std::uint32_t)-1;
 };
 
-class EventHandler
-{
+class EventHandler {
 	MAKE_SINGLETON(EventHandler)
 public:
 	EventHandler() = default;

@@ -32,9 +32,9 @@ public:
 		swap(a.m_Valid, b.m_Valid);
 	}
 
-	[[nodiscard]] int GetWidth() const { return  m_Width; }
-	[[nodiscard]] int GetHeight() const { return m_Height; }
-	[[nodiscard]] bool GetValid() const { return m_Valid; }
+	[[nodiscard]] int getWidth() const { return  m_Width; }
+	[[nodiscard]] int getHeight() const { return m_Height; }
+	[[nodiscard]] bool getValid() const { return m_Valid; }
 public:
 	SDL_Surface* Surface; 
 	SDL_Texture* Texture;
@@ -47,30 +47,16 @@ private:
 
 };
 
-class TextureManager
-{
+class TextureManager {
 	MAKE_SINGLETON(TextureManager)
 
 public:
-	TextureManager() = default; 
+	TextureManager() : textures_() {}
 
-	TextureData& GetTexture(const std::string& key)	{
-        return m_Textures[key];
-	}
-
-	bool AddTexture(Window& window, const std::string& filepath, const std::string& key)
-	{
-		TextureData t;
-		if(!t.load(window, filepath))
-		{
-			return false;
-		}
-
-		m_Textures.insert({ key, std::move(t) });
-		return true;
-	}
+	[[nodiscard]] TextureData& getTexture(const std::string& key);
+	bool addTexture(Window& window, const std::string& filepath, const std::string& key);
 private:
-	std::unordered_map<std::string, TextureData> m_Textures;
+	std::unordered_map<std::string, TextureData> textures_;
 };
 
 #endif

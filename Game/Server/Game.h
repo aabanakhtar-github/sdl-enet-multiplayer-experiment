@@ -2,15 +2,15 @@
 #define SERVER_GAME_H
 
 #include "ECS.h"
-#include "GraphicsSystem.h"
-#include "PhysicsSystem.h"
-#include "ServerEventSystem.h"
 
-namespace Server
-{
+class GraphicsSystem;
+class PhysicsSystem;
+class AnimationSystem;
+class ServerEventSystem;
 
-    class Game 
-    {
+namespace Server {
+
+    class Game {
     public: 
         explicit Game();
         ~Game(); 
@@ -18,17 +18,17 @@ namespace Server
         void Run(); 
     private:
         void Init(); 
-        void Loop(); 
+        void Loop();
         void Quit(); 
 
     private: 
-        static constexpr float m_TargetFPS = 60.f;
-        static constexpr bool m_RenderGraphics = false; 
-        ECS::Scene m_Arena;  
-        std::size_t m_SceneIndex;
-        GraphicsSystem* m_GraphicsSystem; 
-        PhysicsSystem* m_PhysicsSystem; 
-        ServerEventSystem* m_ServerEventSystem; 
+        static constexpr float target_fps_ = 60.f;
+        static constexpr bool render_graphics_ = false;
+        ECS::Scene arena_;
+        GraphicsSystem* graphics_system_;
+        PhysicsSystem* physics_system_;
+        ServerEventSystem* server_event_system_;
+        AnimationSystem* animation_system_;
     }; 
 
 }

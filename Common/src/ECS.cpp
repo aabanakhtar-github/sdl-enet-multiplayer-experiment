@@ -1,3 +1,4 @@
 #include "ECS.h"
 
-ECS::ComponentID ECS::Internal::next_componentID = 1;
+std::size_t ECS::Internal::next_system_ID = 1;
+std::size_t ECS::Internal::next_component_ID = 1;

@@ -60,7 +60,7 @@ ServerUpdatePayload payloadFromString<ServerUpdatePayload>(const std::string& da
     
     for (int i = 0; i < return_value.clients_size; ++i) {
         ClientInfo client; 
-        ss >> client.ID >> client.position.x >> client.position.y;
+        ss >> client.ID >> client.position.x >> client.position.y >> client.anim_state;
         return_value.client_states.push_back(client);
     }
 
@@ -73,7 +73,7 @@ std::string payloadToString<ServerUpdatePayload>(const ServerUpdatePayload& payl
     ss << payload.clients_size << " ";
 
     for (auto& client : payload.client_states) {
-        ss << client.ID << " " << client.position.x << " " << client.position.y << " ";
+        ss << client.ID << " " << client.position.x << " " << client.position.y << " " << client.anim_state;
     } 
 
     return ss.str();

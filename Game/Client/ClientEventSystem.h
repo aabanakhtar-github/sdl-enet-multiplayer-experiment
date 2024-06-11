@@ -10,10 +10,9 @@
 #include <array>  
 
 
-struct ClientView : ClientInfo 
-{
-    ECS::EntityID ID; 
-    Vector2 LastPosition, LerpPosition; 
+struct ClientView : ClientInfo {
+    ECS::EntityID ID = -1;
+    Vector2 last_position, lerp_position;
 };
 
 class ClientEventSystem : public ECS::ISystem
@@ -21,28 +20,26 @@ class ClientEventSystem : public ECS::ISystem
     using ClientInfoEx = std::pair<ECS::EntityID, ClientInfo>;
     using ClientRollbackInfo = std::pair<ClientInfo, ClientUpdatePayload>; 
 public:
-    ClientEventSystem() : m_CurrentScene(nullptr) {}
-    ~ClientEventSystem() { m_NetClient.disconnect(3.0); } 
-    virtual void init(ECS::Scene &scene) override;
-    virtual void update(ECS::Scene &scene, float deltatime) override;
+    ClientEventSystem() : current_scene_(nullptr) {}
+    ~ClientEventSystem() { net_client_.disconnect(3.0); }
+    void init(ECS::Scene &scene) override;
+    void update(ECS::Scene &scene, float delta) override;
 private:
-    void UpdateGame(const std::string& packet_data);
-    void OnRecievePacket(const PacketData& packet);
-    void PredictClientState(); 
-    void ReconcileWithServer();  
-    std::uint16_t GetKeyboardBits();
-    void InterpolateEntities(); 
+    void syncGame(const std::string& packet_data);
+    void onReceivePacket(const PacketData& packet);
+    void predictClientState();
+    void interpolateEntities();
+
+    [[nodiscard]] std::uint16_t getKeyboardBits();
 private:
-    static constexpr float m_NetTickRate = 30.f; 
-    std::uint64_t m_InputSequenceNumber = 0; 
-    bool m_InputBit = false;  
-    EventHandler m_EventHandler; 
-    NetClient m_NetClient;
-    std::array<ClientView, 10> m_OtherPeers; 
-    std::array<ClientRollbackInfo, 1024> m_RollbackBuffer; 
-    ECS::EntityID m_ID; 
-    ECS::Scene* m_CurrentScene;
-    Timer m_LerpTimer;
+    static constexpr float net_tick_rate_ = 30.f;
+    bool input_bit_ = false;
+    ECS::EntityID ID_ = -1;
+    NetClient net_client_;
+    std::array<ClientView, 10> other_peers_;
+    std::array<ClientRollbackInfo, 1024> rollback_buffer_;
+    Timer lerp_timer_;
+    ECS::Scene* current_scene_;
 };
 
 #endif

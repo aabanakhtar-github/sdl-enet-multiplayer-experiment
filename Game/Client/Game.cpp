@@ -1,37 +1,38 @@
-#include "Game.h" 
-#include "Util.h"
-#include "CreateScenes.h"
-#include <thread>
-#include <iostream>
+#include "Game.h"
 #include "Timer.h"
+#include "Util.h"
+#include "ClientEventSystem.h"
+#include "AnimationSystem.h"
+#include "GraphicsSystem.h"
+#include "../Server/PhysicsSystem.h"
+#include "CreateScenes.h"
+#include <iostream>
 
 namespace Client {
     
     Game::Game() 
-        : m_GameScenes(), m_SceneIndex(0), m_GraphicsSystem(new GraphicsSystem()), 
-            m_PhysicsSystem(new PhysicsSystem()), m_PlayerInputSystem(new ClientEventSystem())
-    {
+        : game_scenes_(),
+          scene_index_(0),
+          graphics_system_(new GraphicsSystem()),
+          player_input_system_(new ClientEventSystem()),
+          animation_system_(new AnimationSystem()) {
         initLibraries();
+        registerComponents(game_scenes_[0]);
     }
 
-    Game::~Game() 
-    {
+    Game::~Game() {
         shutdownLibraries();
     }
 
-    void Game::Run() 
-    {
-        Init(); 
+    void Game::Run() {
+        init();
 
-        while (true) 
-        {
-            switch (GlobalAppState::get().getAppState()) 
-            {
+        while (true) {
+            switch (GlobalAppState::get().getAppState()) {
             case AppState::AS_FAIL:
                 std::cerr << "Errors have occured! Terminating...." << std::endl; 
 
-                for (auto &error : GlobalAppState::get().getError()) 
-                {
+                for (auto &error : GlobalAppState::get().getError()) {
                     std::cerr << "Error List: " << error << std::endl; 
                 }
 
@@ -39,7 +40,7 @@ namespace Client {
                 break;
 
             case AppState::AS_LOOP: 
-                Loop(); 
+                loop();
                 break; 
 
             case AppState::AS_QUIT: 
@@ -49,46 +50,41 @@ namespace Client {
         } 
 
 quit:
-        Quit(); 
+        quit();
     }
 
-    void Game::Init() 
-    {
+    void Game::init() {
         // constructor fail => library init failed
-        if (GlobalAppState::get().getAppState() == AppState::AS_FAIL) 
-        {
+        if (GlobalAppState::get().getAppState() == AppState::AS_FAIL) {
             return;  
         }
 
-        createGameLevel(m_GameScenes[0]);
+        ECS::SystemManager::get().registerSystem<AnimationSystem>(animation_system_);
+        ECS::SystemManager::get().registerSystem<GraphicsSystem>(graphics_system_);
+        ECS::SystemManager::get().registerSystem<ClientEventSystem>(player_input_system_);
+        ECS::SystemManager::get().initAllSystems(game_scenes_[0]);
 
-        ECS::SystemManager::get().RegisterSystems({ m_PlayerInputSystem, m_GraphicsSystem });
-        ECS::SystemManager::get().InitAllSystems(m_GameScenes[0]); 
+        createGameLevel(game_scenes_[0]);
 
-        if (GlobalAppState::get().getAppState() != AppState::AS_FAIL) 
-        {
+        if (GlobalAppState::get().getAppState() != AppState::AS_FAIL) {
             GlobalAppState::get().setAppState(AppState::AS_LOOP);
         }   
-        
    }
 
-    void Game::Loop()
-    {
+    void Game::loop() {
         static float delta_time = 0.0f; 
-        Timer timer; 
-        ECS::SystemManager::get().UpdateSystems(delta_time, m_GameScenes[0]); 
+        Timer timer;
+        ECS::SystemManager::get().updateSystems(delta_time, game_scenes_[0]);
         delta_time = timer.getDelta();
 
-        if (delta_time < 1.0f / m_TargetFPS)
-        {
-            timer.Block(1.0f / m_TargetFPS - delta_time);
+        if (delta_time < 1.0f / target_fps_) {
+            Timer::block(1.0f / target_fps_ - delta_time);
         }
 
         delta_time = timer.getDelta();
     }
 
-    void Game::Quit() 
-    {
+    void Game::quit() {
     }
 
 }

@@ -7,45 +7,41 @@
 #include <iostream>
 
 GraphicsSystem::GraphicsSystem()
-	: DrawDebugRects(false), GameWindow(std::move(std::make_unique<Window>()))
-{
-	if (!GameWindow->InitWindow("Hello World!", 1280, 720))
-	{
+    : game_window_() {
+    if (!game_window_.init("Multiplayer Demo", 900, 600)) {
 		GlobalAppState::get().setAppState(AppState::AS_FAIL, "Couldn't open window!");
 	}	
 }
 
-void GraphicsSystem::init(ECS::Scene &scene)
-{
-	auto protected_load = [this](const std::string& file, const std::string& name) -> void 
-	{
-		bool success = TextureManager::get().AddTexture(*GameWindow, file, name);
-		if (!success) 
-		{
+void GraphicsSystem::init(ECS::Scene &scene) {
+	auto protected_load = [this](const std::string& file, const std::string& name) -> void {
+		bool success = TextureManager::get().addTexture(game_window_, file, name);
+
+        if (!success) {
 			std::cerr << "Failed to load texture " << file << " with SDL_ERROR: " << SDL_GetError() << std::endl;
 		}		
 	};
 
-	protected_load("tileset.png", "foo");
+	protected_load("Assets/tileset.png", "foo");
+    protected_load("Assets/background.png", "bg");
+    protected_load("Assets/player_idle.png", "player_idle");
+    protected_load("Assets/player_run.png", "player_run");
+    protected_load("Assets/player_attack.png", "player_attack");
 }
 
-void GraphicsSystem::update(ECS::Scene &scene, float delta)
-{ 
+void GraphicsSystem::update(ECS::Scene &scene, float delta) {
 	ECS::SceneView<TextureComponent, PositionComponent> IDs(scene);
 	ECS::SceneView<TextureComponent, PhysicsBodyComponent> PhysicsIDs(scene);
-
 	TextureManager& manager = TextureManager::get();
 	
-	GameWindow->Clear();
+    game_window_.clear();
 
-	for (ECS::EntityID ID : IDs.GetEntities())
-	{
-		TextureComponent& texture_ref = scene.getComponent<TextureComponent>(ID);
-		PositionComponent& position_ref = scene.getComponent<PositionComponent>(ID);
-		TextureData& texture = manager.GetTexture(texture_ref.TextureName);
+    for (ECS::EntityID ID : IDs.getEntities()) {
+		auto& texture_ref = scene.getComponent<TextureComponent>(ID);
+		auto& position_ref = scene.getComponent<PositionComponent>(ID);
+		TextureData& texture = manager.getTexture(texture_ref.TextureName);
 
-		if (!texture.GetValid())
-		{
+		if (!texture.getValid()) {
 			std::cerr << "Cannot render texture named " << texture_ref.TextureName << "! SDL_Error: " << SDL_GetError() << std::endl;
 			continue;	
 		}	
@@ -55,36 +51,32 @@ void GraphicsSystem::update(ECS::Scene &scene, float delta)
 		Rect src = texture_ref.SourceRectangle;
 		Rect destination {
             static_cast<int>(position_ref.Position.x), static_cast<int>(position_ref.Position.y), texture_ref.Scale.w, texture_ref.Scale.h };
-		GameWindow->RenderTexture(texture, &src, &destination);
+		game_window_.renderTexture(texture, &src, &destination);
 	
-		if (DrawDebugRects)	
-		{
-			GameWindow->DrawRect(destination);
+		if constexpr (draw_debug_rects_) {
+			game_window_.drawRect(destination);
 		}
 	}	
 
-    // physics entities don't have postion component, handle seperate
-	for (ECS::EntityID ID : PhysicsIDs.GetEntities())
-	{
+    // physics entities don't have position component, handle separate
+	for (ECS::EntityID ID : PhysicsIDs.getEntities()) {
 		auto& texture_ref = scene.getComponent<TextureComponent>(ID);
 		auto& physics_ref = scene.getComponent<PhysicsBodyComponent>(ID);
-		TextureData& texture = manager.GetTexture(texture_ref.TextureName);
+		TextureData& texture = manager.getTexture(texture_ref.TextureName);
 
-		if (!texture.GetValid())
-		{
+		if (!texture.getValid()) {
 			std::cerr << "Cannot render texture named " << texture_ref.TextureName << "! SDL_Error: " << SDL_GetError() << std::endl;
 			continue;	
 		}
 
 		Rect src = texture_ref.SourceRectangle;
 		Rect destination{ physics_ref.BoundingBox.x, physics_ref.BoundingBox.y, physics_ref.BoundingBox.w, physics_ref.BoundingBox.h };
-		GameWindow->RenderTexture(texture, &src, &destination);
+		game_window_.renderTexture(texture, &src, &destination);
 
-		if (DrawDebugRects)
-		{
-			GameWindow->DrawRect(destination);
+		if constexpr (draw_debug_rects_) {
+            game_window_.drawRect(destination);
 		}
 	}
 
-	GameWindow->ShowBuffers();
+	game_window_.showBuffers();
 }

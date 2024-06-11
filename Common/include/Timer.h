@@ -20,7 +20,7 @@ public:
         start_time_ = std::chrono::steady_clock::now();
     }
 
-    static void Block(float time) {
+    static void block(float time) {
         auto t = std::chrono::milliseconds(static_cast<long long>(time * 1000));
         std::this_thread::sleep_for(t);
     }

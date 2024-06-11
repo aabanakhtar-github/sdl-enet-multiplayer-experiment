@@ -11,7 +11,7 @@ NetClient::NetClient()
 
 
 NetClient::NetClient(std::function<void(const PacketData&)> recv_callback)
-    : recv_callback_(recv_callback),
+    : recv_callback_(std::move(recv_callback)),
       client_(nullptr),
       server_{ nullptr, {} } {
 
@@ -26,11 +26,11 @@ NetClient::NetClient(std::function<void(const PacketData&)> recv_callback)
     std::cout << "Created a client successfully!" << std::endl; 
 }
 
-NetClient::NetClient(NetClient&& other) {
+NetClient::NetClient(NetClient&& other) noexcept {
     swap(*this, other); 
 }
 
-NetClient& NetClient::operator = (NetClient&& other) {
+NetClient& NetClient::operator = (NetClient&& other) noexcept {
     swap(*this, other); 
     return *this;
 }
@@ -71,8 +71,7 @@ void NetClient::connectTo(const std::string& server_addr, const std::uint16_t po
     connected_ = true; 
 }
 
-void NetClient::disconnect(const float timeout) 
-{
+void NetClient::disconnect(const float timeout) {
     // connection does not exist ... 
     if (server_.server != nullptr) { 
         enet_peer_disconnect(server_.server, 0);
@@ -82,8 +81,7 @@ void NetClient::disconnect(const float timeout)
     updateNetwork(1.0); 
 }
 
-void NetClient::sendPacket(PacketData& packet, const int channel, const bool reliable)
-{
+void NetClient::sendPacket(PacketData& packet, const int channel, const bool reliable) {
     if (server_.server == nullptr) {
         std::cerr << "Attempted packet send to non existent server!" << std::endl; 
         return; 
@@ -95,8 +93,7 @@ void NetClient::sendPacket(PacketData& packet, const int channel, const bool rel
     enet_peer_send(server_.server, channel, netpacket); 
 }
 
-void NetClient::updateNetwork(const float block_time, const bool disconnection)
-{
+void NetClient::updateNetwork(const float block_time, const bool disconnection) {
     if (client_ == nullptr) { 
         return; 
     }

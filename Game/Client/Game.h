@@ -2,36 +2,34 @@
 #define CLIENT_GAME_H
 
 #include <array>
-#include "Netcode/Packet.h" 
-#include "GraphicsSystem.h"
-#include "PhysicsSystem.h"
-#include "ClientEventSystem.h"
-#include "Netcode/Client.h"
 #include "ECS.h"
 
-namespace Client 
-{
+class GraphicsSystem;
+class PhysicsSystem;
+class ClientEventSystem;
+class AnimationSystem;
 
-    class Game 
-    {
+namespace Client {
+
+    class Game {
     public: 
         explicit Game();
         ~Game(); 
 
         void Run(); 
     private:
-        void Init(); 
-        void Loop(); 
-        void Quit(); 
+        void init();
+        void loop();
+        void quit();
 
     private:
-        static constexpr float m_TargetFPS = 60.0f; 
-        std::array<ECS::Scene, 1> m_GameScenes; 
-        std::size_t m_SceneIndex;
-        GraphicsSystem* m_GraphicsSystem; 
-        PhysicsSystem* m_PhysicsSystem; 
-        ClientEventSystem* m_PlayerInputSystem; 
-    }; 
+        static constexpr float target_fps_ = 60.0f;
+        std::array<ECS::Scene, 1> game_scenes_;
+        std::size_t scene_index_;
+        GraphicsSystem* graphics_system_;
+        ClientEventSystem* player_input_system_;
+        AnimationSystem* animation_system_;
+    };
 
 }
 

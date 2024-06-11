@@ -9,18 +9,19 @@
 using Rect = SDL_Rect;
 class TextureData;
 
-class Window 
-{
+class Window {
 public: 
 	explicit Window(); 
-	~Window(); 
-	
-	bool InitWindow(const std::string& name, std::uint16_t w, std::uint16_t h);
+	~Window();
+    Window(const Window&) = delete;
+    Window& operator = (const Window&) = delete;
+
+    bool init(const std::string& name, int w, int h);
 	// src == nullptr for whole tex, dst == nullptr for rendering to whole window
-	void RenderTexture(TextureData& tex, Rect* src, Rect* dst);
-	void DrawRect(Rect& r);
-	void Clear() { SDL_RenderClear(m_SDLRenderer);	}
-	void ShowBuffers() { SDL_RenderPresent(m_SDLRenderer);	}
+	void renderTexture(TextureData& tex, Rect* src, Rect* dst);
+	void drawRect(Rect& r);
+	void clear() { SDL_RenderClear(m_SDLRenderer);	}
+	void showBuffers() { SDL_RenderPresent(m_SDLRenderer);	}
 
 private:
 	SDL_Window* m_SDLWindow;
@@ -28,10 +29,6 @@ private:
 	
 	friend class TextureData;
 	friend class TextureManager;
-
-private:
-	Window(const Window&) = delete;
-	Window& operator = (const Window&) = delete;
 };
 
 #endif // WINDOW_H

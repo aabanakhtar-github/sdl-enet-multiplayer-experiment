@@ -3,30 +3,33 @@
 
 #include "ECS.h"
 #include "Netcode/Server.h"
-#include <array> 
+#include <array>
+#include <vector>
+#include <string>
 #include "Timer.h" 
 
-class ServerEventSystem : public ECS::ISystem 
-{
-public: 
-    explicit ServerEventSystem(ECS::Scene& scene) : m_NetworkSequenceNumber(0) {}
+class ServerEventSystem : public ECS::ISystem {
+public:
+    explicit ServerEventSystem(ECS::Scene& scene) : current_scene_(&scene) { }
+    ServerEventSystem() : client_to_ecs_ID_(), current_scene_(nullptr) {}
     ~ServerEventSystem(); 
 
-    virtual void init(ECS::Scene &scene) override;
-    virtual void update(ECS::Scene &scene, float delta) override;
-
-    void SetupServer(const std::uint16_t port); 
+    void init(ECS::Scene &scene) override;
+    void update(ECS::Scene &scene, float delta) override;
+    // TODO: bind IP
+    void setupServer(std::uint16_t port);
+public:
+    std::vector<std::string> anim_states{10};
 private:
-    void OnRecievePacket(const PacketData& packet);
+    void onRecievePacket(const PacketData& packet);
 private:
-    static constexpr float m_NetTickRate = 15.f;
-    static constexpr float m_PlayerAccelX = 5.f; 
-    static constexpr float m_PlayerAccelY = 10.f; 
-    Timer m_NetTickTimer; 
-    std::uint64_t m_NetworkSequenceNumber;
-    NetServer m_NetServer;
-    ECS::Scene* m_CurrentScene;
-    std::array<ECS::EntityID, 10> m_ClientToECS_ID; 
+    static constexpr float net_tick_rate_ = 60.f;
+    static constexpr float player_accel_x_ = 400.f;
+    static constexpr float player_accel_y_ = 1300.f;
+    ECS::Scene* current_scene_;
+    Timer net_tick_timer_;
+    NetServer net_server_;
+    std::array<ECS::EntityID, 10> client_to_ecs_ID_ ;
 }; 
 
 #endif

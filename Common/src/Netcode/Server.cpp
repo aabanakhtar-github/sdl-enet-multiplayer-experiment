@@ -4,9 +4,10 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric> 
+#include <utility>
 
-NetServer::NetServer(const std::uint16_t port, const std::size_t peers, std::function<void(const PacketData&)> recv_callback) 
-    : recv_callback_(recv_callback),
+NetServer::NetServer(const std::uint16_t port, const std::size_t peers, std::function<void(const PacketData&)> recv_callback)
+    : recv_callback_(std::move(recv_callback)),
       server_(nullptr) {
     ENetAddress addr;
     addr.host = ENET_HOST_ANY;
@@ -32,11 +33,11 @@ NetServer::NetServer(const std::uint16_t port, const std::size_t peers, std::fun
     }
 }
 
-NetServer::NetServer(NetServer&& other) {
+NetServer::NetServer(NetServer&& other) noexcept {
     swap(*this, other);
 }
 
-NetServer& NetServer::operator = (NetServer&& other) {
+NetServer& NetServer::operator = (NetServer&& other) noexcept {
     swap(*this, other);
     return *this; 
 }

@@ -24,19 +24,19 @@ struct ServerClientInfo : ClientInfo {
 }; 
 
 class NetServer {
-    NetServer(const NetServer&) = delete; 
-    NetServer& operator = (const NetServer&) = delete; 
 public:
     NetServer() : server_(nullptr) {}
-    explicit NetServer(const std::uint16_t port, const std::size_t peers, std::function<void(const PacketData&)> recv_callback); 
+    explicit NetServer(std::uint16_t port, std::size_t peers, std::function<void(const PacketData&)> recv_callback);
     ~NetServer(); 
-    NetServer(NetServer&&); 
-    NetServer& operator = (NetServer&&); 
+    NetServer(NetServer&&) noexcept;
+    NetServer& operator = (NetServer&&) noexcept;
+    NetServer(const NetServer&) = delete;
+    NetServer& operator = (const NetServer&) = delete;
 
-    void sendPacketToPending(const PacketData& packet, const std::size_t hash, const int channel, bool reliable = false);
-    void sendPacketTo(PacketData& packet, const std::size_t ID, const int channel, bool reliable = false); 
-    void broadcastPacket(PacketData& packet, const int channel, bool reliable = false); 
-    void broadcastPacketToAllExcept(PacketData& packet, const int channel, const std::size_t ID, bool reliable = false);
+    void sendPacketToPending(const PacketData& packet, std::size_t hash, int channel, bool reliable = false);
+    void sendPacketTo(PacketData& packet, std::size_t ID, int channel, bool reliable = false);
+    void broadcastPacket(PacketData& packet, int channel, bool reliable = false);
+    void broadcastPacketToAllExcept(PacketData& packet, int channel, std::size_t ID, bool reliable = false);
     void updateNetwork(float block_time = 0.0f); 
 
     bool getValid() const { return valid_; } 

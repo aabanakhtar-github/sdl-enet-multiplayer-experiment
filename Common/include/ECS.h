@@ -12,14 +12,14 @@
 #include <memory>
 
 namespace ECS {
-	using EntityID = std::uint32_t;
-	using ComponentID = int;
+	using EntityID = std::size_t;
 
 	// end user should not need these internal constants
 	namespace Internal {
-		extern ComponentID next_componentID;
+		extern std::size_t  next_component_ID;
+        extern std::size_t next_system_ID;
 		constexpr EntityID max_entities = 10'000;
-		constexpr ComponentID max_component_per_entity = 32;
+		constexpr std::size_t max_component_per_entity = 32;
 		using ComponentMask = std::bitset<max_component_per_entity + 1>;
 	}
 
@@ -28,9 +28,9 @@ namespace ECS {
 	};
 
 	template<typename T>
-	inline ComponentID getComponentID() {
+	inline std::size_t getComponentID() {
 		static_assert(std::is_base_of_v<ComponentBase, T> == true, "Cannot create a component ID for non-components!");
-		static ComponentID s_this_ID = Internal::next_componentID++;
+		static std::size_t s_this_ID = Internal::next_component_ID++;
 		assert(s_this_ID < Internal::max_component_per_entity && "Too many components! Consider modifying ECS::_Internal::MAX_COMPONENT_PER_ENTITY");
 		return s_this_ID;
 	}
@@ -53,7 +53,7 @@ namespace ECS {
 			return *(component_pool_.end() - 1);
 		}
 
-		T& getComponent(EntityID ID) {
+		[[nodiscard]] T& getComponent(EntityID ID) {
 			assert(entity_to_component_map_.contains(ID) && "Cannot get non existent component!");
 			return component_pool_[entity_to_component_map_[ID]];
 		}
@@ -110,7 +110,7 @@ namespace ECS {
 
 
 		template<typename T>
-		T& getComponent(EntityID ID) {
+		[[nodiscard]] T& getComponent(EntityID ID) {
 			auto selected_pool = getComponentPoolOfType<T>();
 			return selected_pool->getComponent(ID);
 		}
@@ -122,11 +122,11 @@ namespace ECS {
 		}
 
 	private:
-		std::unordered_map<ComponentID, std::shared_ptr<ComponentPoolBase>> m_ComponentPools;
+		std::unordered_map<std::size_t, std::shared_ptr<ComponentPoolBase>> m_ComponentPools;
 
 		template<typename T>
-		std::shared_ptr<ComponentPool<T>> getComponentPoolOfType() {
-			ComponentID type_ID = getComponentID<T>();
+		[[nodiscard]] std::shared_ptr<ComponentPool<T>> getComponentPoolOfType() {
+			std::size_t type_ID = getComponentID<T>();
 			assert(m_ComponentPools.contains(type_ID) && "Component Pool does not exist!");
 			return std::static_pointer_cast<ComponentPool<T>, ComponentPoolBase>(m_ComponentPools[type_ID]);
 		}
@@ -182,7 +182,7 @@ namespace ECS {
 		}
 
 		template<typename T>
-		T& getComponent(EntityID ID) {
+		[[nodiscard]] T& getComponent(EntityID ID) {
 			assert(active_entities_.contains(ID) && "Cannot get non-existent component!");
 			return component_manager_.getComponent<T>(ID);
 		}
@@ -215,9 +215,9 @@ namespace ECS {
             mask_[0] = true;  // it's already checking for active entities
 
 			if constexpr (sizeof...(T) > 0) {
-				std::vector<ComponentID> IDs = { (getComponentID<T>(), ...) };
+				std::vector<std::size_t> IDs = { (getComponentID<T>(), ...) };
 
-                for (ComponentID ID : IDs) {
+                for (std::size_t ID : IDs) {
 					mask_.set(ID);
 				}
 
@@ -233,7 +233,7 @@ namespace ECS {
 			}
 		}
 
-		[[nodiscard]] const std::vector<EntityID>& GetEntities() const {
+		[[nodiscard]] const std::vector<EntityID>& getEntities() const {
 			return valid_entities_;
 		}
 
@@ -250,6 +250,12 @@ namespace ECS {
 		virtual void init(Scene& scene) = 0;
 	};
 
+    template<typename T>
+    std::size_t getSystemID() {
+        static std::size_t ID = Internal::next_system_ID++;
+        return ID;
+    }
+
 	class SystemManager {
 		SystemManager() = default;
 	public:
@@ -257,36 +263,40 @@ namespace ECS {
         SystemManager& operator = (const SystemManager&) = delete;
 
         // cross engine compat
-		static SystemManager& get() {
+		[[nodiscard]] static SystemManager& get() {
 			static SystemManager manager; 
 			return manager;
 		}
 
-		void InitAllSystems(ECS::Scene& scene) {
-			for (auto& system : m_Systems) {
+		void initAllSystems(ECS::Scene& scene) {
+			for (auto& system : systems_) {
                 system->init(scene);
 			}
 		}
 
-		void RegisterSystem(ISystem* system) {
-			m_Systems.push_back(std::unique_ptr<ISystem>(system));
-		}
+	    template<typename T>
+	    void registerSystem(T* sys) {
+            static_assert(std::is_base_of_v<ECS::ISystem, T>, "Registering a system that isn't inherited from ECS::ISystem");
+            assert(!system_index_.contains(getSystemID<T>()) && "Cannot add duplicate systems!");
 
-		void RegisterSystems(const std::vector<ISystem*>& systems) {
-			for (auto& system : systems) {
-				m_Systems.push_back(std::unique_ptr<ISystem>(system));
-			}	
-		}
+            systems_.emplace_back(static_cast<ISystem*>(sys));
+            system_index_[getSystemID<T>()] = *(systems_.end() - 1);
+        }
 
-		void UpdateSystems(float delta, ECS::Scene& scene) {
-			for (auto& system : m_Systems) {
+		void updateSystems(float delta, ECS::Scene& scene) {
+			for (auto& system : systems_) {
                 system->update(scene, delta);
 			}
 		}
 
+        template<typename T>
+        [[nodiscard]] std::shared_ptr<T> getSystem() {
+            return std::static_pointer_cast<T>(system_index_[getSystemID<T>()]);
+        }
 	private:
-		std::vector<std::unique_ptr<ISystem>> m_Systems;
-	};
+		std::vector<std::shared_ptr<ISystem>> systems_;
+        std::unordered_map<std::size_t, std::shared_ptr<ISystem>> system_index_;
+    };
 }
 
 #endif // ECS_H

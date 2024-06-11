@@ -4,8 +4,7 @@
 #include "ECS.h"
 #include "Components.h"
 
-enum class Prototype
-{ 
+enum class Proto {
     PLAYER, 
     TILE_1x1_GRASS, 
     TILE_1x1_DIRT, 
@@ -14,8 +13,7 @@ enum class Prototype
     TILE_3x2
 };
 
-ECS::EntityID makeEntity(ECS::Scene& scene, const Prototype type, const Vector2& position);
+ECS::EntityID makeEntity(ECS::Scene& scene, Proto type, const Vector2& position);
 void createGameLevel(ECS::Scene& scene);
 
-
-#endif
+#endif // CREATE_SCENES_H

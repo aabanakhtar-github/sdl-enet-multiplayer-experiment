@@ -56,9 +56,14 @@ TextureData& TextureData::operator = (TextureData other) {
 }
 
 bool TextureData::load(Window& window, const std::string& filepath) {
-	SDL_FreeSurface(Surface);
-	SDL_DestroyTexture(Texture);
-	
+	if (Surface != nullptr) {
+        SDL_FreeSurface(Surface);
+    }
+
+    if (Texture != nullptr) {
+        SDL_DestroyTexture(Texture);
+    }
+
 	m_Valid = false;
 	m_Renderer = window.m_SDLRenderer;
 	Surface = IMG_Load(filepath.c_str());	
@@ -79,6 +84,9 @@ bool TextureData::load(Window& window, const std::string& filepath) {
 	
 	SDL_FreeSurface(Surface);
 	Surface = optimized;
+    // set color key
+    SDL_SetColorKey(Surface, SDL_TRUE, SDL_MapRGB(Surface->format, 0, 255, 255));
+
 	Texture = SDL_CreateTextureFromSurface(window.m_SDLRenderer, Surface);
 
 	if (Texture == nullptr)	{
@@ -88,11 +96,11 @@ bool TextureData::load(Window& window, const std::string& filepath) {
 	
 	m_Width = Surface->w;
 	m_Height = Surface->h;	
-	m_Valid = true;	
-
+	m_Valid = true;
 	return true;
 }
 
+// bro does this even work
 bool TextureData::refresh() {
 	if (Texture == nullptr || Surface == nullptr) { 
 		return false; 
@@ -110,8 +118,7 @@ bool TextureData::refresh() {
 	return true;
 }
 
-TextureData::~TextureData()
-{
+TextureData::~TextureData() {
 	if (Surface != nullptr) {
 		SDL_FreeSurface(Surface);
 	}	
@@ -122,4 +129,18 @@ TextureData::~TextureData()
 
 	Surface = nullptr;
 	Texture = nullptr;
+}
+
+TextureData &TextureManager::getTexture(const std::string &key) {
+    return textures_[key];
+}
+
+bool TextureManager::addTexture(Window &window, const std::string &filepath, const std::string &key) {
+    TextureData t;
+    if(!t.load(window, filepath)) {
+        return false;
+    }
+
+    textures_.insert({ key, std::move(t) });
+    return true;
 }

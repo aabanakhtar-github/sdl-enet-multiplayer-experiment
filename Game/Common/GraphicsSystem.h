@@ -1,18 +1,16 @@
 #include <memory>
 #include "Util.h"
 #include "ECS.h"
+#include "Window.h"
 
-class GraphicsSystem : public ECS::ISystem
-{
+class GraphicsSystem : public ECS::ISystem {
 public:
 	GraphicsSystem();
 
 	// Render Loop
-	virtual void init(ECS::Scene &scene);
-	virtual void update(ECS::Scene &scene, float delta);
+	void init(ECS::Scene &scene) override;
+	void update(ECS::Scene &scene, float delta) override;
 public:
-	bool DrawDebugRects;
-	std::unique_ptr<class Window> GameWindow;
-private:
-	void InitMedia();
+    Window game_window_;
+    static constexpr bool draw_debug_rects_ = true;
 };
