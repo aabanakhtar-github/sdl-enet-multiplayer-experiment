@@ -51,9 +51,9 @@ namespace {
                 { "jump", AnimationStateMachineComponent::Animation {
                         .frames = {
                             TextureComponent {
-                                .SourceRectangle = { 407, 63, 32, 42},
+                                .SourceRectangle = { 407, 63, 33, 43},
                                 .TextureName = "player_attack",
-                                .Scale = { 0, 0, 32, 42 }
+                                .Scale = { 0, 0, 33, 43 }
                             }
                         },
                         .seconds_per_frame = 0.3f

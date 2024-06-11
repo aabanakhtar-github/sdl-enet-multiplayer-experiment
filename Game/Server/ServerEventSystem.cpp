@@ -68,7 +68,9 @@ void ServerEventSystem::update(ECS::Scene &scene, float delta) {
                 // send the position data etc
                 auto& component = scene.getComponent<PhysicsBodyComponent>(client_to_ecs_ID_[client.first]);
                 client_position = { static_cast<float>(component.BoundingBox.x), static_cast<float>(component.BoundingBox.y) };
-                payload.client_states[i] = ClientInfo { static_cast<int>(client.first), client_position, anim_states[client_to_ecs_ID_[i]]};
+
+                // set the animation state and position
+                payload.client_states[i] = ClientInfo { static_cast<int>(client.first), client_position, anim_states[client.second.ID]};
                 ++i;
             }
 

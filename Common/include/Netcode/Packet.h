@@ -25,7 +25,7 @@ enum PacketType {
 };
 
 struct ClientInfo {
-    int ID = -1; 
+    std::size_t ID = -1;
     Vector2 position = { 0, 0 };
     std::string anim_state;
 }; 

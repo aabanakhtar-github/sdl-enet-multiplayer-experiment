@@ -18,8 +18,10 @@ public:
     void update(ECS::Scene &scene, float delta) override;
     // TODO: bind IP
     void setupServer(std::uint16_t port);
+
+    [[nodiscard]] const std::array<ECS::EntityID, 10>& getClientToECS_IDArray() const { return client_to_ecs_ID_; }
 public:
-    std::vector<std::string> anim_states{10};
+    std::array<std::string, 10> anim_states;
 private:
     void onRecievePacket(const PacketData& packet);
 private:

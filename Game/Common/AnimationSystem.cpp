@@ -16,7 +16,6 @@ void AnimationSystem::update(ECS::Scene &scene, float delta) {
         auto& anim = component.state_to_animation_frames[component.state];
 
         assert(component.state_to_animation_frames.contains(component.state) && "No animation available");
-        std::cout << component.state << std::endl;
         assert(!anim.frames.empty() && "No animations available for state");
 
         if (component.state != component.last_state) {

@@ -157,6 +157,12 @@ namespace ECS {
             active_entities_[ID][0] = active;
 		}
 
+        bool entityActive(ECS::EntityID ID) {
+           return active_entities_.contains(ID) && active_entities_[ID][0];
+        }
+
+        // TODO: refactor active_entities; should be "Created_entities" as these entities can potentially be inactive
+        // the array holds the entities that have been created but still can be disabled
 		bool entityExists(EntityID ID) {
 			return active_entities_.contains(ID);
 		}

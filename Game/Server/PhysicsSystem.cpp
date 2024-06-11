@@ -2,6 +2,7 @@
 #include "Util.h" 
 #include "PhysicsSystem.h"
 #include "ServerEventSystem.h"
+#include <iostream>
 
 void PhysicsSystem::update(ECS::Scene &scene, float delta) {
 	ECS::SceneView<PhysicsBodyComponent> physics_bodies(scene);
@@ -55,22 +56,21 @@ void PhysicsSystem::update(ECS::Scene &scene, float delta) {
 		component.Acceleration = { 0, 0 };
 	}
 
-    ECS::SceneView<PlayerComponent, PhysicsBodyComponent> players(scene);
     auto event_system = ECS::SystemManager::get().getSystem<ServerEventSystem>();
+    const auto& players = event_system->getClientToECS_IDArray();
 
     for (auto& i : event_system->anim_states) {
         i = "idle";
     }
 
-    for (ECS::EntityID i : players.getEntities()) {
-        auto& component = scene.getComponent<PhysicsBodyComponent>(i);
+    for (std::size_t i = 0; i < players.size(); ++i) {
+        if (!scene.entityActive(players[i])) {
+            continue;
+        }
 
-        if (component.Velocity.y == 0 && component.Velocity.x == 0) {
-            event_system->anim_states[i] = "idle";
-        } else if (component.Velocity.y != 0) {
-            event_system->anim_states[i] = "jump";
-        } else if (component.Velocity.x < 0) {
-            event_system->anim_states[i] = "idle";
+        auto& component = scene.getComponent<PhysicsBodyComponent>(players[i]);
+        if (component.Velocity.y != 0) {
+           event_system->anim_states[i] = "jump";
         } else {
             event_system->anim_states[i] = "idle";
         }
