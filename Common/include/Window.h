@@ -6,6 +6,7 @@
 
 #include "SDL.h"
 
+using FRect = SDL_FRect;
 using Rect = SDL_Rect;
 class TextureData;
 
@@ -18,14 +19,14 @@ public:
 
     bool init(const std::string& name, int w, int h);
 	// src == nullptr for whole tex, dst == nullptr for rendering to whole window
-	void renderTexture(TextureData& tex, Rect* src, Rect* dst);
-	void drawRect(Rect& r);
-	void clear() { SDL_RenderClear(m_SDLRenderer);	}
-	void showBuffers() { SDL_RenderPresent(m_SDLRenderer);	}
+	void renderTexture(TextureData& tex, Rect* src, SDL_FRect* dst, SDL_RendererFlip flip = SDL_FLIP_HORIZONTAL);
+	void drawRect(FRect& r);
+	void clear() { SDL_RenderClear(renderer_);	}
+	void showBuffers() { SDL_RenderPresent(renderer_);	}
 
 private:
-	SDL_Window* m_SDLWindow;
-	SDL_Renderer* m_SDLRenderer;
+	SDL_Window* window_;
+	SDL_Renderer* renderer_;
 	
 	friend class TextureData;
 	friend class TextureManager;

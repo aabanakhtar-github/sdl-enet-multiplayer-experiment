@@ -4,6 +4,7 @@
 #include <array>
 #include "ECS.h"
 
+class CameraFollowerSystem;
 class GraphicsSystem;
 class PhysicsSystem;
 class ClientEventSystem;
@@ -29,6 +30,7 @@ namespace Client {
         GraphicsSystem* graphics_system_;
         ClientEventSystem* player_input_system_;
         AnimationSystem* animation_system_;
+        CameraFollowerSystem* camera_follower_system_;
     };
 
 }

@@ -22,11 +22,11 @@ inline void registerComponents(ECS::Scene& scene) {
     scene.registerComponent<PlayerComponent>();
 }
 
-struct TextureComponent : public ECS::ComponentBase
-{
+struct TextureComponent : public ECS::ComponentBase {
 	Rect SourceRectangle = {};	
-	std::string TextureName = "";
+	std::string TextureName;
 	Rect Scale = {}; // overrided by physics body bounding box, if present
+    SDL_RendererFlip flip;
 };
 
 struct PositionComponent : public ECS::ComponentBase
@@ -34,17 +34,15 @@ struct PositionComponent : public ECS::ComponentBase
 	Vector2 Position;
 };
 
-struct PhysicsBodyComponent : public ECS::ComponentBase
-{
-	Rect BoundingBox = {};
-	Vector2 Velocity = {};
-	Vector2 Acceleration = {};	
-	bool SimulatesPhysics = false;
+struct PhysicsBodyComponent : public ECS::ComponentBase {
+	FRect AABB = {};
+	Vector2 velocity;
+	bool simulates_physics = false;
     bool grounded = false;
 	
 	friend bool operator == (const PhysicsBodyComponent& a, const PhysicsBodyComponent& b) {
-		return a.BoundingBox == b.BoundingBox && a.Velocity == b.Velocity
-			&& a.Acceleration == b.Acceleration && a.SimulatesPhysics == b.SimulatesPhysics;
+		return a.AABB == b.AABB && a.velocity == b.velocity && a.simulates_physics == b.simulates_physics
+            && a.grounded && b.grounded;
 	}
 };
 
@@ -63,9 +61,9 @@ struct AnimationStateMachineComponent : public ECS::ComponentBase {
     std::unordered_map<std::string, Animation> state_to_animation_frames;
 };
 
-// shell component to diffrentiate players from non-players
+// shell component to differentiate players from non-players
 struct PlayerComponent : ECS::ComponentBase {
-
+    bool facing_left = false;
 };
 
 #endif // COMPONENTS_H

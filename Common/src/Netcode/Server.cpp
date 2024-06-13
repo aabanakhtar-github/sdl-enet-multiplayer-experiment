@@ -186,7 +186,7 @@ void NetServer::updateNetwork(float block_time) {
                     *static_cast<int*>(event.peer->data) = client_ID;
 
                     ServerClientInfo client_info; 
-                    client_info.ID = client_ID;
+                    client_info.network_ID = client_ID;
                     client_info.client_salt = it->second.client_salt; 
                     client_info.server_salt = it->second.server_salt; 
                     client_info.peer = event.peer;

@@ -39,7 +39,9 @@ public:
     void broadcastPacketToAllExcept(PacketData& packet, int channel, std::size_t ID, bool reliable = false);
     void updateNetwork(float block_time = 0.0f); 
 
-    bool getValid() const { return valid_; } 
+    bool getValid() const { return valid_; }
+    // returns a map of network IDs to their info
+    // std::pair < network id, client data >
     std::unordered_map<std::size_t, ServerClientInfo>& GetClients() { return clients_; }
 
     friend void swap(NetServer& a, NetServer& b) { 

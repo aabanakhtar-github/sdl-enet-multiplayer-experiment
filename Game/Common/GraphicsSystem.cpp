@@ -7,7 +7,8 @@
 #include <iostream>
 
 GraphicsSystem::GraphicsSystem()
-    : game_window_() {
+    : camera(),
+      game_window_() {
     if (!game_window_.init("Multiplayer Demo", 900, 600)) {
 		GlobalAppState::get().setAppState(AppState::AS_FAIL, "Couldn't open window!");
 	}	
@@ -37,41 +38,50 @@ void GraphicsSystem::update(ECS::Scene &scene, float delta) {
     game_window_.clear();
 
     for (ECS::EntityID ID : IDs.getEntities()) {
-		auto& texture_ref = scene.getComponent<TextureComponent>(ID);
-		auto& position_ref = scene.getComponent<PositionComponent>(ID);
-		TextureData& texture = manager.getTexture(texture_ref.TextureName);
+		auto& texture_component = scene.getComponent<TextureComponent>(ID);
+		auto& position_component = scene.getComponent<PositionComponent>(ID);
+		TextureData& texture = manager.getTexture(texture_component.TextureName);
 
 		if (!texture.getValid()) {
-			std::cerr << "Cannot render texture named " << texture_ref.TextureName << "! SDL_Error: " << SDL_GetError() << std::endl;
+			std::cerr << "Cannot render texture named " << texture_component.TextureName << "! SDL_Error: " << SDL_GetError() << std::endl;
 			continue;	
 		}	
 
-		assert((texture_ref.Scale.w > 0 && texture_ref.Scale.h > 0) && "Cannot create render image of scale <0!");
+		assert((texture_component.Scale.w > 0 && texture_component.Scale.h > 0) && "Cannot create render image of scale <0!");
 
-		Rect src = texture_ref.SourceRectangle;
-		Rect destination {
-            static_cast<int>(position_ref.Position.x), static_cast<int>(position_ref.Position.y), texture_ref.Scale.w, texture_ref.Scale.h };
-		game_window_.renderTexture(texture, &src, &destination);
-	
+        Rect src = texture_component.SourceRectangle;
+        Vector2 transformed = camera.transform({ position_component.Position.x, position_component.Position.y});
+        FRect destination = { transformed.x, transformed.y, static_cast<float>(src.w), static_cast<float>(src.h) };
+
+		game_window_.renderTexture(texture, &src, &destination, texture_component.flip);
+
 		if constexpr (draw_debug_rects_) {
 			game_window_.drawRect(destination);
 		}
 	}	
 
-    // physics entities don't have position component, handle separate
+    // physics entities don't have position component, handle separately
 	for (ECS::EntityID ID : PhysicsIDs.getEntities()) {
-		auto& texture_ref = scene.getComponent<TextureComponent>(ID);
-		auto& physics_ref = scene.getComponent<PhysicsBodyComponent>(ID);
-		TextureData& texture = manager.getTexture(texture_ref.TextureName);
+		auto& texture_component = scene.getComponent<TextureComponent>(ID);
+		auto& physics_component = scene.getComponent<PhysicsBodyComponent>(ID);
+		TextureData& texture = manager.getTexture(texture_component.TextureName);
 
 		if (!texture.getValid()) {
-			std::cerr << "Cannot render texture named " << texture_ref.TextureName << "! SDL_Error: " << SDL_GetError() << std::endl;
+			std::cerr << "Cannot render texture named " << texture_component.TextureName << "! SDL_Error: " << SDL_GetError() << std::endl;
 			continue;	
 		}
 
-		Rect src = texture_ref.SourceRectangle;
-		Rect destination{ physics_ref.BoundingBox.x, physics_ref.BoundingBox.y, physics_ref.BoundingBox.w, physics_ref.BoundingBox.h };
-		game_window_.renderTexture(texture, &src, &destination);
+        Rect src = texture_component.SourceRectangle;
+        Vector2 transformed = camera.transform({static_cast<float>(physics_component.AABB.x), static_cast<float>(physics_component.AABB.y) });
+        FRect destination = { transformed.x, transformed.y, static_cast<float>(physics_component.AABB.w), static_cast<float>(physics_component.AABB.h) };
+
+        if (scene.hasComponent<PlayerComponent>(ID)) {
+            auto& player_component = scene.getComponent<PlayerComponent>(ID);
+            game_window_.renderTexture(texture, &src, &destination, player_component.facing_left ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
+        } else {
+           game_window_.renderTexture(texture, &src, &destination);
+
+        }
 
 		if constexpr (draw_debug_rects_) {
             game_window_.drawRect(destination);

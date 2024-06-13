@@ -9,8 +9,8 @@ namespace {
         scene.addComponent<TextureComponent>(ID) = {
         };
         scene.addComponent<PhysicsBodyComponent>(ID) = {
-                .BoundingBox = { 0, 0, 33, 70 },
-                .SimulatesPhysics = false
+                .AABB = { -450, 200, 50, 100 },
+                .simulates_physics = true
         };
         scene.addComponent<PlayerComponent>(ID);
         scene.addComponent<AnimationStateMachineComponent>(ID) = {
@@ -22,27 +22,22 @@ namespace {
                             TextureComponent {
                                 .SourceRectangle = { 33, 70, 20, 35 },
                                 .TextureName = "player_idle",
-                                .Scale = { 0, 0, 20, 35 }
                             },
                             TextureComponent {
                                 .SourceRectangle { 128, 70, 20, 35 },
                                 .TextureName = "player_idle",
-                                .Scale = {0, 0, 20, 35 }
                             },
                             TextureComponent {
                                 .SourceRectangle { 220, 70, 20, 35 },
                                 .TextureName = "player_idle",
-                                .Scale = { 0, 0, 20, 35 }
                             },
                             TextureComponent {
                                 .SourceRectangle { 314, 70, 20, 35 },
                                 .TextureName = "player_idle",
-                                .Scale = { 0, 0, 20, 35 }
                             },
                             TextureComponent {
-                                .SourceRectangle { 407, 70, 20, 35},
+                                .SourceRectangle { 407, 70, 20, 35 },
                                 .TextureName = "player_idle",
-                                .Scale = { 0, 0, 20, 35}
                             }
                         },
                         .seconds_per_frame = 0.3f
@@ -51,14 +46,34 @@ namespace {
                 { "jump", AnimationStateMachineComponent::Animation {
                         .frames = {
                             TextureComponent {
-                                .SourceRectangle = { 407, 63, 33, 43},
+                                .SourceRectangle = { 407, 63, 33, 43 },
                                 .TextureName = "player_attack",
-                                .Scale = { 0, 0, 33, 43 }
                             }
                         },
                         .seconds_per_frame = 0.3f
+                    }},
+                { "run", AnimationStateMachineComponent::Animation {
+                        .frames {
+                            TextureComponent {
+                                .SourceRectangle = { 33, 74, 31, 31 },
+                                .TextureName = "player_run"
+                            },
+                            TextureComponent {
+                                .SourceRectangle = { 125, 74, 31, 31 },
+                                .TextureName = "player_run"
+                            },
+                            TextureComponent {
+                                .SourceRectangle { 219, 74, 31, 31 },
+                                .TextureName = "player_run"
+                            },
+                            TextureComponent {
+                                .SourceRectangle { 312, 75, 31, 31 },
+                                .TextureName = "player_run"
+                            }
+                        },
+                        .seconds_per_frame = 0.1f
                     }
-                },
+                }
             }
         };
 
@@ -96,7 +111,7 @@ void createGameLevel(ECS::Scene& scene) {
        .Scale = Rect(0, 0, 900, 600)
     };
     scene.addComponent<PositionComponent>(background) = {
-            .Position = Vector2(0, 0)
+        .Position = { -450, 300 }
     };
 
     ECS::EntityID floor = scene.createEntity();
@@ -106,19 +121,8 @@ void createGameLevel(ECS::Scene& scene) {
         .Scale = Rect(0, 0, 700, 700)
     };
     scene.addComponent<PhysicsBodyComponent>(floor) = PhysicsBodyComponent {
-        .BoundingBox = { 0, 400, 700, 700 }, 
-        .SimulatesPhysics = false
-    };
-
-    ECS::EntityID floor2 = scene.createEntity();
-    scene.addComponent<TextureComponent>(floor2) = TextureComponent {
-            .SourceRectangle = Rect(0, 0, 50, 50),
-            .TextureName = "foo",
-            .Scale = Rect(0, 0, 700, 700)
-    };
-    scene.addComponent<PhysicsBodyComponent>(floor2) = PhysicsBodyComponent {
-            .BoundingBox = { 400, 350, 700, 700 },
-            .SimulatesPhysics = false
+        .AABB = {-450, 0, 700, 700 },
+        .simulates_physics = false
     };
 
 }

@@ -21,13 +21,14 @@ public:
 
     [[nodiscard]] const std::array<ECS::EntityID, 10>& getClientToECS_IDArray() const { return client_to_ecs_ID_; }
 public:
-    std::array<std::string, 10> anim_states;
+    // std::pair is <anim_state, facing_left>
+    std::array<std::pair<std::string, bool>, 10> anim_states;
 private:
     void onRecievePacket(const PacketData& packet);
 private:
     static constexpr float net_tick_rate_ = 60.f;
-    static constexpr float player_accel_x_ = 400.f;
-    static constexpr float player_accel_y_ = 1300.f;
+    static constexpr float player_x_speed_ =  300.f;
+    static constexpr float player_jump_speed_ = 500.f;
     ECS::Scene* current_scene_;
     Timer net_tick_timer_;
     NetServer net_server_;

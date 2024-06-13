@@ -88,13 +88,12 @@ namespace ECS {
 		std::vector<T> component_pool_;
 	};
 
-	class ComponentManager
-	{
+	class ComponentManager {
 	public:
 		explicit ComponentManager() = default;
 
 		template<typename T>
-		T& AddComponent(EntityID ID) {
+		T& addComponent(EntityID ID) {
 			assert(m_ComponentPools.contains(getComponentID<T>()) && "Unregistered component being added!");
 			return getComponentPoolOfType<T>()->addComponent(ID);
 		}
@@ -184,7 +183,7 @@ namespace ECS {
 		T& addComponent(EntityID ID) {
 			assert(active_entities_[ID].test(getComponentID<T>()) != true && "Cannot add already existing component!");
 			active_entities_[ID].set(getComponentID<T>());
-			return	component_manager_.AddComponent<T>(ID);
+			return component_manager_.addComponent<T>(ID);
 		}
 
 		template<typename T>
@@ -199,6 +198,11 @@ namespace ECS {
 			active_entities_[ID].set(getComponentID<T>(), false);
             component_manager_.removeComponent<T>(ID);
 		}
+
+        template<typename T>
+        [[nodiscard]] bool hasComponent(EntityID ID) {
+            return active_entities_[ID][getComponentID<T>()];
+        }
 
         Scene(const Scene&) = delete;
         Scene& operator = (const Scene&) = delete;
@@ -296,6 +300,7 @@ namespace ECS {
 		}
 
         template<typename T>
+        // TODO: weak_ptr?
         [[nodiscard]] std::shared_ptr<T> getSystem() {
             return std::static_pointer_cast<T>(system_index_[getSystemID<T>()]);
         }

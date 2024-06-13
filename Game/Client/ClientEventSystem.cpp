@@ -1,7 +1,6 @@
 #include "ClientEventSystem.h"
 #include "Components.h"
 #include <cstdint>
-#include <sstream> 
 #include <iostream>
 #include "CreateScenes.h"
 
@@ -26,7 +25,10 @@ void ClientEventSystem::init(ECS::Scene &scene) {
     EventHandler::get().bindEvent(SDL_KEYDOWN, [&, this](SDL_Event& e) -> void {
         switch (e.key.keysym.sym) {
         case SDLK_SPACE: {
-            if (!net_client_.getConnected()) return;
+            if (!net_client_.getConnected()) {
+                return;
+            }
+
             PacketData packet; 
             packet.type = PT_CLIENT_JUMP; 
             packet.data_size = 0; 
@@ -43,9 +45,9 @@ void ClientEventSystem::init(ECS::Scene &scene) {
     });
 
     // Create Players 
-    for (auto& other_peer : other_peers_) {
-        other_peer.ID = makeEntity(scene, Proto::PLAYER, Vector2(0, 0));
-        scene.setEntityActive(other_peer.ID, false);
+    for (auto& other_peer : network_ID_to_ecs_ID_) {
+        other_peer.ecs_ID = makeEntity(scene, Proto::PLAYER, Vector2(0, 0));
+        scene.setEntityActive(other_peer.ecs_ID, false);
     }
  
 }
@@ -77,8 +79,7 @@ void ClientEventSystem::update(ECS::Scene &scene, float delta) {
     predictClientState();
     interpolateEntities();
 
-    if (net_client_.getConnected()) {
-        // TODO: work on this, unimplemented
+    if (net_client_.getConnected() && network_tick_timer_.getDelta() > 1.0f / net_tick_rate_) {
         net_client_.updateNetwork();
         PacketData packet; 
         packet.type = PT_GAME_UPDATE;
@@ -90,10 +91,6 @@ void ClientEventSystem::update(ECS::Scene &scene, float delta) {
         packet.data_size = packet.data.size() + 1;
         net_client_.sendPacket(packet, 0, false);
     }
-
-    if (net_client_.getID() == -1) {
-        return; // haven't connected, and thus this player doesn't exist
-    }
 }
 
 void ClientEventSystem::syncGame(const std::string &packet_data) {
@@ -103,44 +100,58 @@ void ClientEventSystem::syncGame(const std::string &packet_data) {
 
     ECS::Scene& scene = *current_scene_;
     auto payload = payloadFromString<ServerUpdatePayload>(packet_data);
-    // update the client positions 
+    // list of connected clients which will be filled by the server update
     std::vector<std::size_t> connected_list; 
 
     for (auto &client : payload.client_states) {
-        connected_list.push_back(client.ID); 
-        auto& physics_component = scene.getComponent<PhysicsBodyComponent>(other_peers_[client.ID].ID);
-        auto& anim_component = scene.getComponent<AnimationStateMachineComponent>(other_peers_[client.ID].ID);
-        auto& view = other_peers_[client.ID];
+        // save the ID for removing clients later
+        connected_list.push_back(client.network_ID);
 
-        view.last_position = { static_cast<float>(physics_component.BoundingBox.x), static_cast<float>(physics_component.BoundingBox.y) };
+        ECS::EntityID client_ecs_ID = network_ID_to_ecs_ID_[client.network_ID].ecs_ID;
+        // update their state
+        auto& physics_component = scene.getComponent<PhysicsBodyComponent>(client_ecs_ID);
+        auto& anim_component = scene.getComponent<AnimationStateMachineComponent>(client_ecs_ID);
+        auto& texture_component = scene.getComponent<TextureComponent>(client_ecs_ID);
+        auto& player_component = scene.getComponent<PlayerComponent>(client_ecs_ID);
+
+        auto& view = network_ID_to_ecs_ID_[client.network_ID];
+
+        // update their position
+        view.last_position = {static_cast<float>(physics_component.AABB.x), static_cast<float>(physics_component.AABB.y) };
         view.lerp_position = client.position;
 
+        // update the animation
         anim_component.state = client.anim_state;
-
-        scene.setEntityActive(other_peers_[client.ID].ID);
+        player_component.facing_left = client.facing_left;
+        // make sure it is active because we know it is connected now
+        scene.setEntityActive(client_ecs_ID);
     }
 
-    for (std::size_t i = 0; i < other_peers_.size(); ++i) {
-        // is it in the connected list? if so, make the entity active again
-        auto it = std::find(connected_list.begin(), connected_list.end(), i); 
+    for (std::size_t i = 0; i < network_ID_to_ecs_ID_.size(); ++i) {
+        // is it in the connected list? if not, make the entity inactive again
+        auto it = std::find(connected_list.begin(), connected_list.end(), i);
 
         if (it == connected_list.end()) {
-            // make this client dissappear and reset their position 
-            scene.setEntityActive(other_peers_[i].ID, false);
-            auto& component = scene.getComponent<PhysicsBodyComponent>(other_peers_[i].ID);
-            component = PhysicsBodyComponent { .BoundingBox = component.BoundingBox };
+            // make this client disappear and reset their position
+            ECS::EntityID client_ecs_ID = network_ID_to_ecs_ID_[i].ecs_ID;
+            scene.setEntityActive(client_ecs_ID, false);
+            auto& component = scene.getComponent<PhysicsBodyComponent>(client_ecs_ID);
+            component = PhysicsBodyComponent { .AABB = component.AABB };
         }
     }
 }
 
 void ClientEventSystem::onReceivePacket(const PacketData &packet) {
+#pragma clang diagnostic push // Linter is annoying
+#pragma clang diagnostic ignored "-Wswitch"
     switch (packet.type) {
     case PT_GAME_UPDATE: 
         // re-sync / reconcile / interpolate
-        lerp_timer_.reset();
+        lerp_timer_.reset(); // re start the lerp timer from 0 so that it's smooth
         syncGame(packet.data);
         break;
     }
+#pragma clang diagnostic pop
 }
 
 void ClientEventSystem::predictClientState() {
@@ -158,9 +169,15 @@ std::uint16_t ClientEventSystem::getKeyboardBits() /* NOLINT(*-convert-member-fu
 void ClientEventSystem::interpolateEntities() /* NOLINT(*-convert-member-functions-to-static) */ {
     static constexpr float smooth = 1.3f;
 
-    for (auto& client : other_peers_) {
-        auto& component = current_scene_->getComponent<PhysicsBodyComponent>(client.ID);
-        const float T = (std::min)(1.0f, lerp_timer_.getDelta() / (1.0f / 10.0f)) * smooth;
+    for (auto& client : network_ID_to_ecs_ID_) {
+        auto& component = current_scene_->getComponent<PhysicsBodyComponent>(client.ecs_ID);
+
+        // shouldn't exceed 1, as lerp is at 1 when it is the maximum value, 0 when minimum
+        // otherwise interpolate within ~1/10 of a second
+        // when delta = 0 -> t=0
+        // when delta = 1 -> t=10
+        // when delta = 1/10 -> t=1
+        const float T = (std::min)(1.0f, lerp_timer_.getDelta() * 10) * smooth;
 
         Vector2 new_position = {
             std::lerp(client.position.x, client.lerp_position.x, T),
@@ -168,7 +185,7 @@ void ClientEventSystem::interpolateEntities() /* NOLINT(*-convert-member-functio
         };
 
         client.position = new_position;
-        component.BoundingBox.x = static_cast<int>(new_position.x);
-        component.BoundingBox.y = static_cast<int>(new_position.y);
+        component.AABB.x = new_position.x;
+        component.AABB.y = new_position.y;
     }
 }

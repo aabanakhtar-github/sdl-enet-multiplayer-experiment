@@ -9,6 +9,7 @@
 
 class Window;
 
+// TODO: member cleanup
 class TextureData {
 public:
 	TextureData();

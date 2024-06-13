@@ -65,7 +65,7 @@ bool TextureData::load(Window& window, const std::string& filepath) {
     }
 
 	m_Valid = false;
-	m_Renderer = window.m_SDLRenderer;
+	m_Renderer = window.renderer_;
 	Surface = IMG_Load(filepath.c_str());	
 	
 	if (Surface == nullptr) {
@@ -73,7 +73,7 @@ bool TextureData::load(Window& window, const std::string& filepath) {
 		return false;
 	}
 	
-	SDL_Surface* window_surface = SDL_GetWindowSurface(window.m_SDLWindow);
+	SDL_Surface* window_surface = SDL_GetWindowSurface(window.window_);
 	// set the image to use the right screen format for rendering performance
 	SDL_Surface* optimized = SDL_ConvertSurface(Surface, window_surface->format, 0);
 
@@ -87,7 +87,7 @@ bool TextureData::load(Window& window, const std::string& filepath) {
     // set color key
     SDL_SetColorKey(Surface, SDL_TRUE, SDL_MapRGB(Surface->format, 0, 255, 255));
 
-	Texture = SDL_CreateTextureFromSurface(window.m_SDLRenderer, Surface);
+	Texture = SDL_CreateTextureFromSurface(window.renderer_, Surface);
 
 	if (Texture == nullptr)	{
 		m_Valid = false;

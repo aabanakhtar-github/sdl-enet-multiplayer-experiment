@@ -10,8 +10,8 @@
 #include <array>  
 
 
-struct ClientView : ClientInfo {
-    ECS::EntityID ID = -1;
+struct ClientSideClientInfo : ClientInfo {
+    ECS::EntityID ecs_ID = -1;
     Vector2 last_position, lerp_position;
 };
 
@@ -24,6 +24,8 @@ public:
     ~ClientEventSystem() { net_client_.disconnect(3.0); }
     void init(ECS::Scene &scene) override;
     void update(ECS::Scene &scene, float delta) override;
+
+    [[nodiscard]] ECS::EntityID getThisClientID() { return network_ID_to_ecs_ID_[net_client_.getID()].ecs_ID; }
 private:
     void syncGame(const std::string& packet_data);
     void onReceivePacket(const PacketData& packet);
@@ -32,13 +34,11 @@ private:
 
     [[nodiscard]] std::uint16_t getKeyboardBits();
 private:
-    static constexpr float net_tick_rate_ = 30.f;
-    bool input_bit_ = false;
-    ECS::EntityID ID_ = -1;
+    static constexpr float net_tick_rate_ = 60.f;
     NetClient net_client_;
-    std::array<ClientView, 10> other_peers_;
-    std::array<ClientRollbackInfo, 1024> rollback_buffer_;
+    std::array<ClientSideClientInfo, 10> network_ID_to_ecs_ID_;
     Timer lerp_timer_;
+    Timer network_tick_timer_;
     ECS::Scene* current_scene_;
 };
 

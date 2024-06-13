@@ -59,8 +59,8 @@ quit:
 
         server_event_system_->setupServer(7777);
 
-        ECS::SystemManager::get().registerSystem<AnimationSystem>(animation_system_);
         ECS::SystemManager::get().registerSystem<PhysicsSystem>(physics_system_);
+        ECS::SystemManager::get().registerSystem<AnimationSystem>(animation_system_);
         ECS::SystemManager::get().registerSystem<GraphicsSystem>(graphics_system_);
         ECS::SystemManager::get().registerSystem<ServerEventSystem>(server_event_system_);
         ECS::SystemManager::get().initAllSystems(arena_);

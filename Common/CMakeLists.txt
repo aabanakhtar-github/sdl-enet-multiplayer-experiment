@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.26)
+
 project(CoreLib)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
@@ -16,7 +20,7 @@ set(SOURCES
 	src/EventHandler.cpp
 	src/Netcode/Packet.cpp
 	src/Netcode/Client.cpp
-	src/Netcode/Server.cpp 
+	src/Netcode/Server.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES}) 

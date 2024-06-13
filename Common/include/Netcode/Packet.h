@@ -24,15 +24,17 @@ enum PacketType {
     PT_INVALID
 };
 
+// TODO: Clarify between network_ID and ECS_ID so my brain can handle it
 struct ClientInfo {
-    std::size_t ID = -1;
+    std::size_t network_ID = -1;
     Vector2 position = { 0, 0 };
     std::string anim_state;
-}; 
+    bool facing_left;
+};
 
 struct PacketData {
     int salt = 0;
-    int ID = -1;
+    std::size_t ID = -1;
     PacketType type = PT_INVALID; 
     std::size_t data_size = 0;
     std::string data; 
@@ -40,7 +42,7 @@ struct PacketData {
 
 // Client side only
 struct ConnectDisconnectPayload {
-    int ID = -1; 
+    std::size_t ID = -1;
     std::size_t username_size = 0; 
     std::string username_request; 
 }; 
@@ -57,7 +59,7 @@ struct HandshakeResponsePayload {
 
 struct HandshakeAcceptRejectPayload {
     bool accepted = false; 
-    int new_ID = -1; 
+    std::size_t new_ID = -1;
 }; 
 
 struct ClientUpdatePayload {

@@ -21,7 +21,7 @@ void ServerEventSystem::init(ECS::Scene &scene) {
     for (auto& i : client_to_ecs_ID_) {
         i = makeEntity(scene, Proto::PLAYER, Vector2(0, 0));
         auto& component = scene.getComponent<PhysicsBodyComponent>(i);
-        component.SimulatesPhysics = true;
+        component.simulates_physics = true;
         scene.setEntityActive(i, false);
     }
 }
@@ -36,11 +36,19 @@ void ServerEventSystem::setupServer(std::uint16_t port) {
     }
 }
 
+float g_delta = 0.0f;
 
 // Most un-ECSy update method ever
 // probably won't update it because it's too complex to wrap into an ECS ( + scope creep )
 void ServerEventSystem::update(ECS::Scene &scene, float delta) {
     current_scene_ = &scene;
+    g_delta = delta;
+    // update animations locally
+    for (std::size_t i = 0; i < anim_states.size(); ++i) {
+        ECS::EntityID ID = client_to_ecs_ID_[i];
+        auto& component = scene.getComponent<AnimationStateMachineComponent>(ID);
+        component.state = anim_states[i].first;
+    }
 
     if (net_server_.getValid()) {
         net_server_.updateNetwork();
@@ -60,21 +68,28 @@ void ServerEventSystem::update(ECS::Scene &scene, float delta) {
             std::vector<std::size_t> connected_list;
             connected_list.reserve(10); 
 
-            int i = 0;
+
+            // Determine the connected clients and prepare the payload to send update data
+            // index used to add elements to the payload
+            std::size_t i = 0;
             for (auto &client : clients) {
                 // save this client's Server ID for later
-                connected_list.push_back(client.first); 
-                Vector2 client_position;
+                connected_list.push_back(client.first);
+
                 // send the position data etc
-                auto& component = scene.getComponent<PhysicsBodyComponent>(client_to_ecs_ID_[client.first]);
-                client_position = { static_cast<float>(component.BoundingBox.x), static_cast<float>(component.BoundingBox.y) };
+                auto& physics_component = scene.getComponent<PhysicsBodyComponent>(client_to_ecs_ID_[client.first]);
+                auto& player_component = scene.getComponent<PlayerComponent>(client_to_ecs_ID_[client.first]);
+                player_component.facing_left = anim_states[client.second.network_ID].second;
+                Vector2 client_position = { static_cast<float>(physics_component.AABB.x), static_cast<float>(physics_component.AABB.y) };
 
                 // set the animation state and position
-                payload.client_states[i] = ClientInfo { static_cast<int>(client.first), client_position, anim_states[client.second.ID]};
+                payload.client_states[i] = ClientInfo {
+                    client.first, client_position, anim_states[client.second.network_ID].first,
+                        anim_states[client.second.network_ID].second };
                 ++i;
             }
 
-            // Determine which client's to disable using their Server ID -> ECS::EntityID
+            // Determine which client's to disable using their Server ID -> ECS::EntityID on the local view
             for (std::size_t k = 0; k < client_to_ecs_ID_.size(); ++k) {
                 // is it in the connected list? if so, make the entity active again
                 // find the client if it is connected using Server ID through connected_list
@@ -85,8 +100,8 @@ void ServerEventSystem::update(ECS::Scene &scene, float delta) {
                     scene.setEntityActive(client_to_ecs_ID_[k], false);
                     // reset the entity
                     auto& component = scene.getComponent<PhysicsBodyComponent>(client_to_ecs_ID_[k]);
-                    component = PhysicsBodyComponent { .BoundingBox = component.BoundingBox };
-                    component.SimulatesPhysics = true; 
+                    component = PhysicsBodyComponent { .AABB = component.AABB };
+                    component.simulates_physics = true;
                 } else {
                     // this server ID entity is active, set their ECS::EntityID to active
                     scene.setEntityActive(client_to_ecs_ID_[k]);
@@ -122,7 +137,7 @@ void ServerEventSystem::onRecievePacket(const PacketData& packet) {
             x_scale = 0;
         }
        
-        component.Velocity.x = x_scale * player_accel_x_;
+        component.velocity.x = static_cast<float>(x_scale) * player_x_speed_;
         break;
     }
     case PT_CLIENT_JUMP: {
@@ -130,7 +145,7 @@ void ServerEventSystem::onRecievePacket(const PacketData& packet) {
         auto& component = current_scene_->getComponent<PhysicsBodyComponent>(client);
 
         if (component.grounded) {
-            component.Velocity.y = -player_accel_y_;
+            component.velocity.y = player_jump_speed_;
         }
 
         break;

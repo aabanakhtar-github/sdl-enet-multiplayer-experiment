@@ -22,8 +22,7 @@ namespace Server {
         void Quit(); 
 
     private: 
-        static constexpr float target_fps_ = 60.f;
-        static constexpr bool render_graphics_ = false;
+        static constexpr float target_fps_ = 360.f;
         ECS::Scene arena_;
         GraphicsSystem* graphics_system_;
         PhysicsSystem* physics_system_;

@@ -1,5 +1,11 @@
-﻿# Build files for the Game 
+﻿
+cmake_minimum_required(VERSION 3.26)
+
+# Build files for the Game
 project(Game)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 
 set(SHARED_SOURCES
 	Common/GraphicsSystem.cpp
@@ -11,6 +17,7 @@ set(CLIENT_SOURCES
 	Client/Main.cpp 
 	Client/Game.cpp 	
 	Client/ClientEventSystem.cpp
+	Client/CameraFollowerSystem.cpp
 )
 
 set(SERVER_SOURCES

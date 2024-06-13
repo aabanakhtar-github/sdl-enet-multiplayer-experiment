@@ -11,9 +11,11 @@ public:
 	
     void init(ECS::Scene &scene) override;
 	void update(ECS::Scene &scene, float delta) override;
+private:
+    void handleCollisions(ECS::Scene& scene, float delta, ECS::EntityID ID, const std::vector<ECS::EntityID>& physics_bodies);
 
 private:
-	constexpr static float gravity_ = 200.0f;
+	constexpr static Vector2 gravity_ = { 0, -500.0f };
 };
 
 #endif // PHYSICS_SYSTEM_H
