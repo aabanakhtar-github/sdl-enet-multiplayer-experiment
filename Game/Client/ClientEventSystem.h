@@ -15,8 +15,8 @@ struct ClientSideClientInfo : ClientInfo {
     Vector2 last_position, lerp_position;
 };
 
-class ClientEventSystem : public ECS::ISystem
-{
+// Monolithic system that handles inputs and network code in a slightly hackish way
+class ClientEventSystem : public ECS::ISystem {
     using ClientInfoEx = std::pair<ECS::EntityID, ClientInfo>;
     using ClientRollbackInfo = std::pair<ClientInfo, ClientUpdatePayload>; 
 public:

@@ -2,7 +2,7 @@
 
 
 namespace {
-
+    // builder functions
     ECS::EntityID makePlayer(ECS::Scene& scene, const Vector2& position) {
         ECS::EntityID ID = scene.createEntity();
 
@@ -20,24 +20,24 @@ namespace {
                 { "idle", AnimationStateMachineComponent::Animation {
                         .frames = {
                             TextureComponent {
-                                .SourceRectangle = { 33, 70, 20, 35 },
-                                .TextureName = "player_idle",
+                                .source_rectangle = {33, 70, 20, 35 },
+                                .texture_name = "player_idle",
                             },
                             TextureComponent {
-                                .SourceRectangle { 128, 70, 20, 35 },
-                                .TextureName = "player_idle",
+                                .source_rectangle {128, 70, 20, 35 },
+                                .texture_name = "player_idle",
                             },
                             TextureComponent {
-                                .SourceRectangle { 220, 70, 20, 35 },
-                                .TextureName = "player_idle",
+                                .source_rectangle {220, 70, 20, 35 },
+                                .texture_name = "player_idle",
                             },
                             TextureComponent {
-                                .SourceRectangle { 314, 70, 20, 35 },
-                                .TextureName = "player_idle",
+                                .source_rectangle {314, 70, 20, 35 },
+                                .texture_name = "player_idle",
                             },
                             TextureComponent {
-                                .SourceRectangle { 407, 70, 20, 35 },
-                                .TextureName = "player_idle",
+                                .source_rectangle {407, 70, 20, 35 },
+                                .texture_name = "player_idle",
                             }
                         },
                         .seconds_per_frame = 0.3f
@@ -46,8 +46,8 @@ namespace {
                 { "jump", AnimationStateMachineComponent::Animation {
                         .frames = {
                             TextureComponent {
-                                .SourceRectangle = { 407, 63, 33, 43 },
-                                .TextureName = "player_attack",
+                                .source_rectangle = {407, 63, 33, 43 },
+                                .texture_name = "player_attack",
                             }
                         },
                         .seconds_per_frame = 0.3f
@@ -55,20 +55,20 @@ namespace {
                 { "run", AnimationStateMachineComponent::Animation {
                         .frames {
                             TextureComponent {
-                                .SourceRectangle = { 33, 74, 31, 31 },
-                                .TextureName = "player_run"
+                                .source_rectangle = {33, 74, 31, 31 },
+                                .texture_name = "player_run"
                             },
                             TextureComponent {
-                                .SourceRectangle = { 125, 74, 31, 31 },
-                                .TextureName = "player_run"
+                                .source_rectangle = {125, 74, 31, 31 },
+                                .texture_name = "player_run"
                             },
                             TextureComponent {
-                                .SourceRectangle { 219, 74, 31, 31 },
-                                .TextureName = "player_run"
+                                .source_rectangle {219, 74, 31, 31 },
+                                .texture_name = "player_run"
                             },
                             TextureComponent {
-                                .SourceRectangle { 312, 75, 31, 31 },
-                                .TextureName = "player_run"
+                                .source_rectangle {312, 75, 31, 31 },
+                                .texture_name = "player_run"
                             }
                         },
                         .seconds_per_frame = 0.1f
@@ -76,6 +76,12 @@ namespace {
                 }
             }
         };
+
+        return ID;
+    }
+
+    ECS::EntityID make3x2(ECS::Scene& scene, const Vector2& position) {
+        ECS::EntityID ID = scene.createEntity();
 
         return ID;
     }
@@ -96,29 +102,29 @@ ECS::EntityID makeEntity(ECS::Scene& scene, const Proto type, const Vector2& pos
     case Proto::TILE_3x1:
         break;
     case Proto::TILE_3x2:
-        break;
+        return make3x2(scene, position);
     }
 
     return -1; // invalid
 }
 
 void createGameLevel(ECS::Scene& scene) {
-
     ECS::EntityID background = scene.createEntity();
     scene.addComponent<TextureComponent>(background) = {
-       .SourceRectangle = Rect(0, 0, 900, 600),
-       .TextureName = "bg",
-       .Scale = Rect(0, 0, 900, 600)
+       .source_rectangle = Rect(0, 0, 900, 600),
+       .texture_name = "bg",
+       .scale = Rect(0, 0, 900, 600)
     };
     scene.addComponent<PositionComponent>(background) = {
-        .Position = { -450, 300 }
+        .position = { 0.0f, 0.0f },
+        .cartesian = false
     };
 
     ECS::EntityID floor = scene.createEntity();
     scene.addComponent<TextureComponent>(floor) = TextureComponent {
-        .SourceRectangle = Rect(0, 0, 50, 50), 
-        .TextureName = "foo",
-        .Scale = Rect(0, 0, 700, 700)
+        .source_rectangle = Rect(0, 0, 50, 50),
+        .texture_name = "foo",
+        .scale = Rect(0, 0, 700, 700)
     };
     scene.addComponent<PhysicsBodyComponent>(floor) = PhysicsBodyComponent {
         .AABB = {-450, 0, 700, 700 },

@@ -23,15 +23,21 @@ inline void registerComponents(ECS::Scene& scene) {
 }
 
 struct TextureComponent : public ECS::ComponentBase {
-	Rect SourceRectangle = {};	
-	std::string TextureName;
-	Rect Scale = {}; // overrided by physics body bounding box, if present
-    SDL_RendererFlip flip;
+	Rect source_rectangle = {};
+	std::string texture_name;
+	Rect scale = {}; // overrided by physics body bounding box, if present
+    SDL_RendererFlip flip = SDL_FLIP_NONE;
 };
 
-struct PositionComponent : public ECS::ComponentBase
-{
-	Vector2 Position;
+// multiple textures as a group
+struct TextureGroupComponent : public ECS::ComponentBase {
+    // std::pair < offset, texture >
+    std::unordered_map<FRect, TextureComponent> textures;
+};
+
+struct PositionComponent : public ECS::ComponentBase {
+	Vector2 position;
+    bool cartesian = true;
 };
 
 struct PhysicsBodyComponent : public ECS::ComponentBase {

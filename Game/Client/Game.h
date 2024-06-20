@@ -10,6 +10,8 @@ class PhysicsSystem;
 class ClientEventSystem;
 class AnimationSystem;
 
+
+// game encapsulation class
 namespace Client {
 
     class Game {
