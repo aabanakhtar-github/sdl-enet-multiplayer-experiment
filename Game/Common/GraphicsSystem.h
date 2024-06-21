@@ -1,5 +1,6 @@
-#include <memory>
-#include "Util.h"
+#ifndef GRAPHICS_SYSTEM_H
+#define GRAPHICS_SYSTEM_H
+
 #include "ECS.h"
 #include "Camera.h"
 #include "Window.h"
@@ -23,3 +24,5 @@ private:
     Window game_window_;
     static constexpr bool draw_debug_rects_ = true;
 };
+
+#endif // GRAPHICS_SYSTEM_H

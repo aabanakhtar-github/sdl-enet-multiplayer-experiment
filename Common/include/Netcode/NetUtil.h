@@ -1,29 +1,26 @@
 #ifndef NETUTIL_H
-#define NETUTIL_H 
+#define NETUTIL_H
 
-#include <typeindex>
 #include <string>
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    #define _WINSOCK_DEPRECATED_NO_WARNINGS
-#endif 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#endif
 
-#include "enet/enet.h" 
+#include "enet/enet.h"
+#include "Util.h"
 
-namespace std 
-{ 
+namespace std {
 
-    template<>
-    struct hash<ENetAddress> { 
-        
-        std::size_t operator()(ENetAddress& address) const noexcept 
-        {
-            std::string formatted = std::to_string(address.host) + ":" + std::to_string(address.port); 
-            return std::hash<std::string>()(formatted); 
-        }
+template <> struct hash<ENetAddress> {
 
-    };
+  size_t operator()(const ENetAddress &address) const noexcept {
+    size_t seed = hash<int>()(address.host); 
+    hash_combine<size_t>(seed, address.port);
+    return seed;  
+  }
+};
 
-}
+} // namespace std
 
 #endif // NETUTIL_H
