@@ -1,4 +1,6 @@
 #include "CreateScenes.h"
+#include "Components.h"
+#include "ECS.h"
 
 namespace {
 // builder functions
@@ -21,7 +23,7 @@ ECS::EntityID makePlayer(ECS::Scene &scene, const Vector2 &position) {
                                  .texture_name = "player_idle",
                              },
                              TextureComponent{
-                                 .source_rectangle{128, 70, 20, 35},
+                                 .source_rectangle = {128, 70, 20, 35},
                                  .texture_name = "player_idle",
                              },
                              TextureComponent{
@@ -60,9 +62,31 @@ ECS::EntityID makePlayer(ECS::Scene &scene, const Vector2 &position) {
   return ID;
 }
 
+ECS::EntityID make2x1(ECS::Scene &scene, const Vector2 &position) {
+  ECS::EntityID ID = scene.createEntity();
+  scene.addComponent<TextureGroupComponent>(ID) = {
+      .textures = {{FRect{0, 0, 100, 100},
+                    TextureComponent{.source_rectangle{16, 16, 16, 16},
+                                     .texture_name = "tileset"}},
+                   {FRect{100, 0, 100, 100},
+                    TextureComponent{.source_rectangle{16, 16, 16, 16},
+                                     .texture_name = "tileset"}}}};
+  scene.addComponent<PhysicsBodyComponent>(ID) = {
+      .AABB = {position.x, position.y, 200, 100}, .simulates_physics = false};
+  return ID;
+}
+
+ECS::EntityID make3x1(ECS::Scene &scene, const Vector2 &position) {
+  ECS::EntityID ID = scene.createEntity();
+
+  // TODO: finish
+  return ID;
+}
+
 ECS::EntityID make3x2(ECS::Scene &scene, const Vector2 &position) {
   ECS::EntityID ID = scene.createEntity();
 
+  // TODO: finish
   return ID;
 }
 
@@ -72,18 +96,18 @@ ECS::EntityID makeEntity(ECS::Scene &scene, const Proto type,
                          const Vector2 &position) {
   switch (type) {
   case Proto::PLAYER: {
-    return makePlayer(scene, position);
+    return ::makePlayer(scene, position);
   }
   case Proto::TILE_1x1_GRASS:
     break;
   case Proto::TILE_1x1_DIRT:
     break;
   case Proto::TILE_2x1:
-    break;
+    return ::make2x1(scene, position);
   case Proto::TILE_3x1:
-    break;
+    return ::make3x1(scene, position);
   case Proto::TILE_3x2:
-    return make3x2(scene, position);
+    return ::make3x2(scene, position);
   }
 
   return -1; // invalid
@@ -98,11 +122,13 @@ void createGameLevel(ECS::Scene &scene) {
   scene.addComponent<PositionComponent>(background) = {.position = {0.0f, 0.0f},
                                                        .cartesian = false};
 
-  ECS::EntityID floor = scene.createEntity();
+  /*ECS::EntityID floor = scene.createEntity();
   scene.addComponent<TextureComponent>(floor) =
       TextureComponent{.source_rectangle = Rect(0, 0, 50, 50),
                        .texture_name = "foo",
                        .scale = Rect(0, 0, 700, 700)};
   scene.addComponent<PhysicsBodyComponent>(floor) = PhysicsBodyComponent{
       .AABB = {-450, 0, 700, 700}, .simulates_physics = false};
+  */
+  ECS::EntityID floor2 = makeEntity(scene, Proto::TILE_2x1, {0, 0});
 }

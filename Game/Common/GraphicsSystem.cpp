@@ -22,7 +22,7 @@ void GraphicsSystem::init(ECS::Scene &scene) {
     }
   };
 
-  protected_load("Assets/tileset.png", "foo");
+  protected_load("Assets/tileset.png", "tileset");
   protected_load("Assets/background.png", "bg");
   protected_load("Assets/player_idle.png", "player_idle");
   protected_load("Assets/player_run.png", "player_run");
@@ -33,8 +33,10 @@ void GraphicsSystem::update(ECS::Scene &scene, float delta) {
   game_window_.clear();
 
   ECS::SceneView<TextureComponent, PositionComponent> regular_textures(scene);
-  ECS::SceneView<TextureComponent, PhysicsBodyComponent> physics_textures(scene);
-  ECS::SceneView<TextureGroupComponent, PhysicsBodyComponent> physics_texture_groups(scene);
+  ECS::SceneView<TextureComponent, PhysicsBodyComponent> physics_textures(
+      scene);
+  ECS::SceneView<TextureGroupComponent, PhysicsBodyComponent>
+      physics_texture_groups(scene);
   TextureManager &manager = TextureManager::get();
 
   drawNormalEntities(scene, manager, regular_textures.getEntities());
@@ -47,16 +49,27 @@ void GraphicsSystem::update(ECS::Scene &scene, float delta) {
 
 void GraphicsSystem::drawGroupPhysicsEntities(
     ECS::Scene &scene, TextureManager &manager,
-    const std::vector<ECS::EntityID> &IDs) { /*
+    const std::vector<ECS::EntityID> &IDs) {
   for (ECS::EntityID ID : IDs) {
-    auto &component = scene.getComponent<TextureGroupComponent>(ID);
+    auto &texture_component = scene.getComponent<TextureGroupComponent>(ID);
+    auto &physics_component = scene.getComponent<PhysicsBodyComponent>(ID);
+    // get the final position of this entity so that we can use the
+    // non-cartesian offsets
+    Vector2 transformed =
+        camera.transform({physics_component.AABB.x, physics_component.AABB.y});
 
-    for (auto &[rect, texture] : component.textures) {
-      auto &texture_to_draw = manager.getTexture(texture.texture_name);
-      // TODO: fix 
-      Rect destination = {rect.x, rect.y, rect.w, rect.h};
+    // Note: texture_component is just data, not actual component
+    for (auto &[offset_rect, texture_component] : texture_component.textures) {
+      auto &texture = manager.getTexture(texture_component.texture_name);
+      Rect src = texture_component.source_rectangle;
+      // calculate offset
+      Vector2 offseted = transformed + Vector2(offset_rect.x, offset_rect.y);
+      FRect destination = {offseted.x, offseted.y, offset_rect.w,
+                           offset_rect.h};
+
+      game_window_.renderTexture(texture, &src, &destination);
     }
-  }*/
+  }
 }
 
 void GraphicsSystem::drawNormalEntities(ECS::Scene &scene,

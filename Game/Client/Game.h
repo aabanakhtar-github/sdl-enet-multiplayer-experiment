@@ -15,7 +15,7 @@ namespace Client {
 
 class Game {
 public:
-  explicit Game();
+  explicit Game(const std::string& ip, const std::uint16_t port);
   ~Game();
 
   void Run();

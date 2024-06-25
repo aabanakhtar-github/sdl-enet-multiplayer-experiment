@@ -1,9 +1,10 @@
 #ifndef ECS_H
 #define ECS_H
 
-#include <deque>
 #include <bitset>
 #include <cassert>
+#include <deque>
+#include <iostream>
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
@@ -35,7 +36,6 @@ template <typename T> inline std::size_t getComponentID() {
          "ECS::_Internal::MAX_COMPONENT_PER_ENTITY");
   return s_this_ID;
 }
-
 // handly little class to help with managing all pools
 class ComponentPoolBase {};
 
@@ -54,6 +54,7 @@ public:
   }
 
   [[nodiscard]] T &getComponent(EntityID ID) {
+    std::cout << ID << std::endl;
     assert(entity_to_component_map_.contains(ID) &&
            "Cannot get non existent component!");
     return component_pool_[entity_to_component_map_[ID]];
@@ -151,6 +152,7 @@ public:
            "Cannot have more than 10000 entities");
 
     auto default_mask = Internal::ComponentMask();
+    //default_mask.reset();
     default_mask[0] = true;
     active_entities_.emplace(e, default_mask);
     free_entity_IDs_.pop_front();
@@ -229,9 +231,9 @@ public:
     mask_[0] = true; // it's already checking for active entities
 
     if constexpr (sizeof...(T) > 0) {
-      std::vector<std::size_t> IDs = {(getComponentID<T>(), ...)};
+      std::vector<std::size_t> IDs = { getComponentID<T>()... };
 
-      for (std::size_t ID : IDs) {
+      for (const std::size_t ID : IDs) {
         mask_.set(ID);
       }
 

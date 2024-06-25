@@ -9,7 +9,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 add_subdirectory(lib/SDL)
 add_subdirectory(lib/SDL_image)
-# Building Enet cross platform requires source build i guess
 add_subdirectory(lib/enet)
 
 set(SOURCES

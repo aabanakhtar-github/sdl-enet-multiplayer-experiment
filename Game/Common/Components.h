@@ -33,12 +33,13 @@ struct hash<FRect> {
 }
 
 inline void registerComponents(ECS::Scene &scene) {
-  scene.registerComponent<TextureGroupComponent>();
   scene.registerComponent<TextureComponent>();
   scene.registerComponent<PositionComponent>();
   scene.registerComponent<PhysicsBodyComponent>();
   scene.registerComponent<AnimationStateMachineComponent>();
   scene.registerComponent<PlayerComponent>();
+
+  scene.registerComponent<TextureGroupComponent>();
 }
 
 struct TextureComponent : public ECS::ComponentBase {
@@ -50,7 +51,7 @@ struct TextureComponent : public ECS::ComponentBase {
 
 // multiple textures as a group
 struct TextureGroupComponent : public ECS::ComponentBase {
-  // std::pair < offset, texture >
+  // std::pair < screen coordinate (non cartesian) offset, texture >
   std::unordered_map<FRect, TextureComponent> textures;
 };
 
@@ -89,7 +90,7 @@ struct AnimationStateMachineComponent : public ECS::ComponentBase {
 };
 
 // shell component to differentiate players from non-players
-struct PlayerComponent : ECS::ComponentBase {
+struct PlayerComponent : public ECS::ComponentBase {
   bool facing_left = false;
 };
 

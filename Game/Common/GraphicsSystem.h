@@ -19,6 +19,9 @@ public:
 private:
     void drawNormalEntities(ECS::Scene& scene, TextureManager& manager, const std::vector<ECS::EntityID>& IDs);
     void drawPhysicsEntities(ECS::Scene& scene, TextureManager& manager, const std::vector<ECS::EntityID>& IDs);
+
+    // Texture groups are basically collections of textures in a "Group" 
+    // so you don't "need" 3 texture components to make a singular platform
     void drawGroupPhysicsEntities(ECS::Scene& scene, TextureManager& manager, const std::vector<ECS::EntityID>& IDs);
 private:
     Window game_window_;

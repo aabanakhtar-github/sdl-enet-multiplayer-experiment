@@ -2,28 +2,22 @@
 #include "Components.h"
 #include "CreateScenes.h"
 #include <cstdint>
-#include <iostream>
+#include <string>
 
-// TODO left:
-// - Client server view synchronization (Clients see same as server) /
-// correction
-// - Client inputs sent to server
-// - Server response to client input
-// - Interpolation (depends)
+ClientEventSystem::ClientEventSystem(const std::string &ip, std::uint16_t port)
+    : current_scene_(nullptr), preloaded_ip(ip), preloaded_port(port) {}
 
 void ClientEventSystem::init(ECS::Scene &scene) {
-  net_client_ = NetClient([this](const PacketData &packet) -> void {
-    this->onReceivePacket(packet);
-  });
+  net_client_ = NetClient(preloaded_ip, preloaded_port, [this](const PacketData& p) -> void { 
+        onReceivePacket(p); 
+      }); 
 
   if (!net_client_.getValid()) {
     GlobalAppState::get().setAppState(AppState::AS_FAIL,
                                       "Cannot initialize network!");
   }
 
-  // TODO refactor into reusable function that allows game to persist across
-  // multiple servers
-  net_client_.connectTo("127.0.0.1", 7777, 3.0);
+  net_client_.connectTo(preloaded_ip, preloaded_port, 3.0);
 
   EventHandler::get().bindEvent(SDL_KEYDOWN, [&, this](SDL_Event &e) -> void {
     switch (e.key.keysym.sym) {
@@ -75,11 +69,10 @@ void ClientEventSystem::Update(ECS::Scene& scene, float delta)
 void ClientEventSystem::update(ECS::Scene &scene, float delta) {
   EventHandler::get().update();
   current_scene_ = &scene;
-
-  std::uint16_t inputs = getKeyboardBits();
-  // Predict Client Movement
-  predictClientState();
   interpolateEntities();
+ 
+  // process inputs and send to server
+  std::uint16_t inputs = getKeyboardBits();
 
   if (net_client_.getConnected() &&
       network_tick_timer_.getDelta() > 1.0f / net_tick_rate_) {
@@ -160,10 +153,6 @@ void ClientEventSystem::onReceivePacket(const PacketData &packet) {
     break;
   }
 #pragma clang diagnostic pop
-}
-
-void ClientEventSystem::predictClientState() {
-  // TODO: implement when have time
 }
 
 std::uint16_t ClientEventSystem::

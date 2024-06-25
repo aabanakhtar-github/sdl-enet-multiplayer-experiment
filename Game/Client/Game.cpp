@@ -10,9 +10,9 @@
 
 namespace Client {
 
-Game::Game()
+Game::Game(const std::string &ip, const std::uint16_t port)
     : game_scenes_(), scene_index_(0), graphics_system_(new GraphicsSystem()),
-      player_input_system_(new ClientEventSystem()),
+      player_input_system_(new ClientEventSystem(ip, port)),
       animation_system_(new AnimationSystem()),
       camera_follower_system_(new CameraFollowerSystem()) {
   initLibraries();
