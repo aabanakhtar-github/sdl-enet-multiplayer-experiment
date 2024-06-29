@@ -1,5 +1,6 @@
 #include "Netcode/Server.h"
 #include "Util.h"
+#include "enet/enet.h"
 #include <Netcode/NetUtil.h>
 #include <iostream>
 #include <utility>
@@ -7,10 +8,10 @@
 NetServer::NetServer(const std::uint16_t port, const std::size_t peers,
                      std::function<void(const PacketData &)> recv_callback)
     : recv_callback_(std::move(recv_callback)), server_(nullptr) {
+  // use enet's internal loopback address instead of a regular ip
   ENetAddress addr;
-  addr.host = ENET_HOST_ANY;
+  addr.host = ENET_HOST_ANY; // allow connectinos from anyone
   addr.port = port;
-
   server_ = enet_host_create(&addr, peers, 1, 0, 0);
 
   if (server_ == nullptr) {
@@ -25,8 +26,8 @@ NetServer::NetServer(const std::uint16_t port, const std::size_t peers,
   char ip_buffer[128] = {0};
   enet_address_get_host_ip(&addr, ip_buffer, 128);
 
-  std::cout << "Server created successfully on ip: " << ip_buffer
-            << " and on port " << port << "!" << std::endl;
+  std::cout << "Server created successfully on port: " << port << "!"
+            << std::endl;
 
   for (std::size_t i = 0; i < peers; ++i) {
     ID_queue_.push(i);

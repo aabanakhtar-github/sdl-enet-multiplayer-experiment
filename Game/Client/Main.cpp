@@ -6,7 +6,7 @@
 // the one and only, the holy grail, the main function
 int main(int argc, char *argv[]) {
   if (argc != 3) {
-    std::cerr << "Too few arguments! usage: \"./Client <server ip> <port>" << std::endl; 
+    std::cerr << "Incorrect argument count! usage: \"./Client <server ip> <port>" << std::endl; 
     return 1; 
   }
   

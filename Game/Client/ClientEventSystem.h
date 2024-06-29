@@ -14,10 +14,10 @@ struct ClientSideClientInfo : ClientInfo {
 
 // Monolithic system that handles inputs and network code
 class ClientEventSystem : public ECS::ISystem {
-  //using ClientInfoEx = std::pair<ECS::EntityID, ClientInfo>;
+  // using ClientInfoEx = std::pair<ECS::EntityID, ClientInfo>;
 
 public:
-  explicit ClientEventSystem(const std::string& ip, std::uint16_t port); 
+  explicit ClientEventSystem(const std::string &ip, std::uint16_t port);
   ~ClientEventSystem() { net_client_.disconnect(3.0); }
   void init(ECS::Scene &scene) override;
   void update(ECS::Scene &scene, float delta) override;
@@ -32,6 +32,7 @@ private:
   void interpolateEntities();
 
   [[nodiscard]] std::uint16_t getKeyboardBits();
+
 private:
   static constexpr float net_tick_rate_ = 60.f;
   NetClient net_client_;
@@ -40,8 +41,8 @@ private:
   Timer network_tick_timer_;
   ECS::Scene *current_scene_;
   // network config variables
-  std::string preloaded_ip;
-  std::uint16_t preloaded_port;
+  const std::string preloaded_ip;
+  const std::uint16_t preloaded_port;
 };
 
 #endif

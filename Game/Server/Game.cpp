@@ -12,10 +12,10 @@ using namespace std::chrono_literals;
 
 namespace Server {
 
-Game::Game()
+Game::Game(std::uint16_t port)
     : arena_(), graphics_system_(new GraphicsSystem()),
       physics_system_(new PhysicsSystem()),
-      server_event_system_(new ServerEventSystem()),
+      server_event_system_(new ServerEventSystem(port)),
       animation_system_(new AnimationSystem()) {
   initLibraries();
   registerComponents(arena_);
@@ -23,8 +23,8 @@ Game::Game()
 
 Game::~Game() { shutdownLibraries(); }
 
-void Game::Run() {
-  Init();
+void Game::run() {
+  init();
 
   while (true) {
     switch (GlobalAppState::get().getAppState()) {
@@ -36,25 +36,22 @@ void Game::Run() {
       }
 
       goto quit;
-
     case AppState::AS_LOOP:
-      Loop();
+      loop();
       break;
-
     case AppState::AS_QUIT:
       goto quit; // *GOTO*
     }
   }
 quit:
-  Quit();
+  quit();
 }
 
-void Game::Init() {
+void Game::init() {
   if (GlobalAppState::get().getAppState() == AppState::AS_FAIL) {
+    std::cerr << "Failed to create systems!" << std::endl; 
     return;
   }
-
-  server_event_system_->setupServer(7777);
 
   ECS::SystemManager::get().registerSystem<PhysicsSystem>(physics_system_);
   ECS::SystemManager::get().registerSystem<AnimationSystem>(animation_system_);
@@ -67,12 +64,14 @@ void Game::Init() {
 
   if (GlobalAppState::get().getAppState() != AppState::AS_FAIL) {
     GlobalAppState::get().setAppState(AppState::AS_LOOP, "");
+  } else { 
+    std::cerr << "Failed to initalize subsystems!" << std::endl;
   }
 }
 
-void Game::Quit() {}
+void Game::quit() {}
 
-void Game::Loop() {
+void Game::loop() {
   static float delta_time = 0.0f;
 
   Timer timer;

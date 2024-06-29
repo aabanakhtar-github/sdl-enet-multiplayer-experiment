@@ -46,8 +46,8 @@ Window::~Window() {
 
 void Window::renderTexture(TextureData &tex, Rect *src, FRect *dst,
                            SDL_RendererFlip flip) {
-  if (tex.Texture != nullptr) {
-    SDL_RenderCopyExF(renderer_, tex.Texture, src, dst, 0.0f, nullptr, flip);
+  if (tex.texture != nullptr) {
+    SDL_RenderCopyExF(renderer_, tex.texture, src, dst, 0.0f, nullptr, flip);
   }
 }
 

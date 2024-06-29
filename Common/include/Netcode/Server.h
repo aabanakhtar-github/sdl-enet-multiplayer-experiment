@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <functional>
 #include <queue>
+#include <string>
 #include <unordered_map>
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -25,7 +26,8 @@ struct ServerClientInfo : ClientInfo {
 class NetServer {
 public:
   NetServer() : server_(nullptr) {}
-  explicit NetServer(std::uint16_t port, std::size_t peers,
+  explicit NetServer(std::uint16_t port,
+                     std::size_t peers,
                      std::function<void(const PacketData &)> recv_callback);
   ~NetServer();
   NetServer(NetServer &&) noexcept;

@@ -18,7 +18,7 @@ public:
   explicit Game(const std::string& ip, const std::uint16_t port);
   ~Game();
 
-  void Run();
+  void run();
 
 private:
   void init();

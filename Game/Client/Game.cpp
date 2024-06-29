@@ -6,6 +6,7 @@
 #include "GraphicsSystem.h"
 #include "Timer.h"
 #include "Util.h"
+#include "Components.h"
 #include <iostream>
 
 namespace Client {
@@ -21,7 +22,7 @@ Game::Game(const std::string &ip, const std::uint16_t port)
 
 Game::~Game() { shutdownLibraries(); }
 
-void Game::Run() {
+void Game::run() {
   init();
 
   while (true) {

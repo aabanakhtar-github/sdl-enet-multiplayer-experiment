@@ -3,36 +3,42 @@
 
 #include "ECS.h"
 #include "Netcode/Server.h"
+#include "Timer.h"
 #include <array>
-#include <vector>
 #include <string>
-#include "Timer.h" 
 
 class ServerEventSystem : public ECS::ISystem {
 public:
-    explicit ServerEventSystem(ECS::Scene& scene) : current_scene_(&scene) { }
-    ServerEventSystem() : client_to_ecs_ID_(), current_scene_(nullptr) {}
-    ~ServerEventSystem(); 
+  explicit ServerEventSystem(std::uint16_t port);     
+  ServerEventSystem() 
+    : current_scene_(nullptr), net_server_(), preloaded_port_() {}
+  ~ServerEventSystem();
 
-    void init(ECS::Scene &scene) override;
-    void update(ECS::Scene &scene, float delta) override;
-    // TODO: bind IP
-    void setupServer(std::uint16_t port);
+  void init(ECS::Scene &scene) override;
+  void update(ECS::Scene &scene, float delta) override;
 
-    [[nodiscard]] const std::array<ECS::EntityID, 10>& getClientToECS_IDArray() const { return client_to_ecs_ID_; }
+  [[nodiscard]] const std::array<ECS::EntityID, 10> &
+  getClientToECS_IDArray() const {
+    return client_to_ecs_ID_;
+  }
+
 public:
-    // std::pair is <anim_state, facing_left>
-    std::array<std::pair<std::string, bool>, 10> anim_states;
+  // std::pair is <anim_state, facing_left>
+  std::array<std::pair<std::string, bool>, 10> anim_states;
+
 private:
-    void onRecievePacket(const PacketData& packet);
+  void onRecievePacket(const PacketData &packet);
+  void setupServer();
 private:
-    static constexpr float net_tick_rate_ = 60.f;
-    static constexpr float player_x_speed_ =  300.f;
-    static constexpr float player_jump_speed_ = 500.f;
-    ECS::Scene* current_scene_;
-    Timer net_tick_timer_;
-    NetServer net_server_;
-    std::array<ECS::EntityID, 10> client_to_ecs_ID_ ;
-}; 
+  static constexpr float net_tick_rate_ = 60.f;
+  static constexpr float player_x_speed_ = 300.f;
+  static constexpr float player_jump_speed_ = 500.f;
+  ECS::Scene *current_scene_;
+  Timer net_tick_timer_;
+  NetServer net_server_;
+  std::array<ECS::EntityID, 10> client_to_ecs_ID_;
+  // Network config variables
+  const std::uint16_t preloaded_port_;  
+};
 
 #endif

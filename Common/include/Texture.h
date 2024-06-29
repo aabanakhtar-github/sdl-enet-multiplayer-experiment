@@ -25,27 +25,27 @@ public:
   // cool feature
   friend void swap(TextureData &a, TextureData &b) {
     using std::swap;
-    swap(a.Surface, b.Surface);
-    swap(a.Texture, b.Texture);
-    swap(a.m_Width, b.m_Width);
-    swap(a.m_Height, b.m_Height);
-    swap(a.m_Renderer, b.m_Renderer);
-    swap(a.m_Valid, b.m_Valid);
+    swap(a.surface, b.surface);
+    swap(a.texture, b.texture);
+    swap(a.width_, b.width_);
+    swap(a.height_, b.height_);
+    swap(a.renderer_, b.renderer_);
+    swap(a.valid_, b.valid_);
   }
 
-  [[nodiscard]] int getWidth() const { return m_Width; }
-  [[nodiscard]] int getHeight() const { return m_Height; }
-  [[nodiscard]] bool getValid() const { return m_Valid; }
+  [[nodiscard]] int getWidth() const { return width_; }
+  [[nodiscard]] int getHeight() const { return height_; }
+  [[nodiscard]] bool getValid() const { return valid_; }
 
 public:
-  SDL_Surface *Surface;
-  SDL_Texture *Texture;
+  SDL_Surface *surface;
+  SDL_Texture *texture;
 
 private:
-  int m_Width;
-  int m_Height;
-  SDL_Renderer *m_Renderer;
-  bool m_Valid;
+  int width_;
+  int height_;
+  SDL_Renderer *renderer_;
+  bool valid_;
 };
 
 class TextureManager {

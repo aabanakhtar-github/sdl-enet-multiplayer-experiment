@@ -5,35 +5,35 @@
 #include <format>
 
 TextureData::TextureData()
-    : m_Height(0), m_Width(0), m_Renderer(nullptr), Surface(nullptr),
-      Texture(nullptr), m_Valid(false) {}
+    : height_(0), width_(0), renderer_(nullptr), surface(nullptr),
+      texture(nullptr), valid_(false) {}
 
 TextureData::TextureData(const TextureData &other) : TextureData() {
-  if (!other.m_Valid) {
+  if (!other.valid_) {
     return;
   }
 
-  m_Renderer = other.m_Renderer;
-  Surface = SDL_CreateRGBSurfaceFrom(
-      other.Surface->pixels, other.Surface->w, other.Surface->h,
-      other.Surface->format->BitsPerPixel, other.Surface->pitch,
-      other.Surface->format->Rmask, other.Surface->format->Gmask,
-      other.Surface->format->Bmask, other.Surface->format->Amask);
+  renderer_ = other.renderer_;
+  surface = SDL_CreateRGBSurfaceFrom(
+      other.surface->pixels, other.surface->w, other.surface->h,
+      other.surface->format->BitsPerPixel, other.surface->pitch,
+      other.surface->format->Rmask, other.surface->format->Gmask,
+      other.surface->format->Bmask, other.surface->format->Amask);
 
-  if (Surface == nullptr) {
-    m_Valid = false;
+  if (surface == nullptr) {
+    valid_ = false;
     return;
   }
 
-  Texture = SDL_CreateTextureFromSurface(m_Renderer, Surface);
-  if (Texture == nullptr) {
-    m_Valid = false;
+  texture = SDL_CreateTextureFromSurface(renderer_, surface);
+  if (texture == nullptr) {
+    valid_ = false;
     return;
   }
 
-  m_Width = Surface->w;
-  m_Height = Surface->h;
-  m_Valid = true;
+  width_ = surface->w;
+  height_ = surface->h;
+  valid_ = true;
 }
 
 TextureData::TextureData(TextureData &&other) noexcept : TextureData() {
@@ -51,80 +51,80 @@ TextureData &TextureData::operator=(TextureData other) {
 }
 
 bool TextureData::load(Window &window, const std::string &filepath) {
-  if (Surface != nullptr) {
-    SDL_FreeSurface(Surface);
+  if (surface != nullptr) {
+    SDL_FreeSurface(surface);
   }
 
-  if (Texture != nullptr) {
-    SDL_DestroyTexture(Texture);
+  if (texture != nullptr) {
+    SDL_DestroyTexture(texture);
   }
 
-  m_Valid = false;
-  m_Renderer = window.renderer_;
-  Surface = IMG_Load(filepath.c_str());
+  valid_ = false;
+  renderer_ = window.renderer_;
+  surface = IMG_Load(filepath.c_str());
 
-  if (Surface == nullptr) {
-    m_Valid = false;
+  if (surface == nullptr) {
+    valid_ = false;
     return false;
   }
 
   SDL_Surface *window_surface = SDL_GetWindowSurface(window.window_);
   // set the image to use the right screen format for rendering performance
   SDL_Surface *optimized =
-      SDL_ConvertSurface(Surface, window_surface->format, 0);
+      SDL_ConvertSurface(surface, window_surface->format, 0);
 
   if (optimized == nullptr) {
-    m_Valid = false;
+    valid_ = false;
     return false;
   }
 
-  SDL_FreeSurface(Surface);
-  Surface = optimized;
+  SDL_FreeSurface(surface);
+  surface = optimized;
   // set color key
-  SDL_SetColorKey(Surface, SDL_TRUE, SDL_MapRGB(Surface->format, 0, 255, 255));
+  SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGB(surface->format, 0, 255, 255));
 
-  Texture = SDL_CreateTextureFromSurface(window.renderer_, Surface);
+  texture = SDL_CreateTextureFromSurface(window.renderer_, surface);
 
-  if (Texture == nullptr) {
-    m_Valid = false;
+  if (texture == nullptr) {
+    valid_ = false;
     return false;
   }
 
-  m_Width = Surface->w;
-  m_Height = Surface->h;
-  m_Valid = true;
+  width_ = surface->w;
+  height_ = surface->h;
+  valid_ = true;
   return true;
 }
 
 // bro does this even work
 bool TextureData::refresh() {
-  if (Texture == nullptr || Surface == nullptr) {
+  if (texture == nullptr || surface == nullptr) {
     return false;
   }
 
-  SDL_DestroyTexture(Texture);
-  Texture = SDL_CreateTextureFromSurface(m_Renderer, Surface);
+  SDL_DestroyTexture(texture);
+  texture = SDL_CreateTextureFromSurface(renderer_, surface);
 
-  if (Texture == nullptr) {
-    m_Valid = false;
+  if (texture == nullptr) {
+    valid_ = false;
     return false;
   }
 
-  m_Valid = true;
+  valid_ = true;
   return true;
 }
 
 TextureData::~TextureData() {
-  if (Surface != nullptr) {
-    SDL_FreeSurface(Surface);
+  if (surface != nullptr) {
+    SDL_FreeSurface(surface);
   }
 
-  if (Texture != nullptr) {
-    SDL_DestroyTexture(Texture);
+  if (texture != nullptr) {
+    SDL_DestroyTexture(texture);
   }
 
-  Surface = nullptr;
-  Texture = nullptr;
+  surface = nullptr;
+  texture = nullptr;
 }
 
 TextureData &TextureManager::getTexture(const std::string &key) {
