@@ -1,10 +1,7 @@
 #include "PhysicsSystem.h"
 #include "Components.h"
 #include "GraphicsSystem.h"
-#include "MathFuncs.h"
 #include "ServerEventSystem.h"
-#include "Util.h"
-#include <iostream>
 
 void PhysicsSystem::update(ECS::Scene &scene, float delta) {
   ECS::SceneView<PhysicsBodyComponent> physics_bodies(scene);

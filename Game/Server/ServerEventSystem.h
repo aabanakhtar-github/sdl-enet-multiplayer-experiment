@@ -7,11 +7,11 @@
 #include <array>
 #include <string>
 
-class ServerEventSystem : public ECS::ISystem {
+class ServerEventSystem : public ECS::SystemBase {
 public:
-  explicit ServerEventSystem(std::uint16_t port);     
-  ServerEventSystem() 
-    : current_scene_(nullptr), net_server_(), preloaded_port_() {}
+  explicit ServerEventSystem(std::uint16_t port);
+  ServerEventSystem()
+      : current_scene_(nullptr), net_server_(), preloaded_port_() {}
   ~ServerEventSystem();
 
   void init(ECS::Scene &scene) override;
@@ -28,7 +28,7 @@ public:
 
 private:
   void onRecievePacket(const PacketData &packet);
-  void setupServer();
+  void updateNetwork(ECS::Scene& scene);
 private:
   static constexpr float net_tick_rate_ = 60.f;
   static constexpr float player_x_speed_ = 300.f;
@@ -38,7 +38,7 @@ private:
   NetServer net_server_;
   std::array<ECS::EntityID, 10> client_to_ecs_ID_;
   // Network config variables
-  const std::uint16_t preloaded_port_;  
+  const std::uint16_t preloaded_port_;
 };
 
 #endif

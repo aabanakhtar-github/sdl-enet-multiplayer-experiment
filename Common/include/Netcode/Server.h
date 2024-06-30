@@ -1,13 +1,13 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <any>
 #include <cstdint>
 #include <functional>
 #include <queue>
 #include <string>
 #include <unordered_map>
 
+// remove MSVC warnings
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #endif
@@ -20,14 +20,12 @@ struct ServerClientInfo : ClientInfo {
   int client_salt = -1;
   int server_salt = -1;
   std::size_t hash;
-  std::any user_data;
 };
 
 class NetServer {
 public:
   NetServer() : server_(nullptr) {}
-  explicit NetServer(std::uint16_t port,
-                     std::size_t peers,
+  explicit NetServer(std::uint16_t port, std::size_t peers,
                      std::function<void(const PacketData &)> recv_callback);
   ~NetServer();
   NetServer(NetServer &&) noexcept;
@@ -47,7 +45,7 @@ public:
   bool getValid() const { return valid_; }
   // returns a map of network IDs to their info
   // std::pair < network id, client data >
-  std::unordered_map<std::size_t, ServerClientInfo> &GetClients() {
+  std::unordered_map<std::size_t, ServerClientInfo> &getClients() {
     return clients_;
   }
 

@@ -3,7 +3,6 @@
 
 #include "SDL.h"
 #include "Util.h"
-#include <cstdint>
 #include <string>
 #include <unordered_map>
 

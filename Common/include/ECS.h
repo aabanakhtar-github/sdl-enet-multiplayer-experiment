@@ -260,7 +260,7 @@ private:
   std::vector<EntityID> valid_entities_;
 };
 
-class ISystem {
+class SystemBase {
 public:
   virtual void update(Scene &scene, float delta) = 0;
   virtual void init(Scene &scene) = 0;
@@ -292,12 +292,12 @@ public:
 
   template <typename T> void registerSystem(T *sys) {
     static_assert(
-        std::is_base_of_v<ECS::ISystem, T>,
+        std::is_base_of_v<SystemBase, T>,
         "Registering a system that isn't inherited from ECS::ISystem");
     assert(!system_index_.contains(getSystemID<T>()) &&
            "Cannot add duplicate systems!");
 
-    systems_.emplace_back(static_cast<ISystem *>(sys));
+    systems_.emplace_back(sys);
     system_index_[getSystemID<T>()] = *(systems_.end() - 1);
   }
 
@@ -314,8 +314,8 @@ public:
   }
 
 private:
-  std::vector<std::shared_ptr<ISystem>> systems_;
-  std::unordered_map<std::size_t, std::shared_ptr<ISystem>> system_index_;
+  std::vector<std::shared_ptr<SystemBase>> systems_;
+  std::unordered_map<std::size_t, std::shared_ptr<SystemBase>> system_index_;
 };
 } // namespace ECS
 

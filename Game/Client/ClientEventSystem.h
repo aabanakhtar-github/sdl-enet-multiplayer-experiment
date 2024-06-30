@@ -13,7 +13,7 @@ struct ClientSideClientInfo : ClientInfo {
 };
 
 // Monolithic system that handles inputs and network code
-class ClientEventSystem : public ECS::ISystem {
+class ClientEventSystem : public ECS::SystemBase {
   // using ClientInfoEx = std::pair<ECS::EntityID, ClientInfo>;
 
 public:

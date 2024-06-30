@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "AnimationSystem.h"
+#include "Components.h"
 #include "CreateScenes.h"
 #include "GraphicsSystem.h"
 #include "PhysicsSystem.h"
@@ -49,7 +50,7 @@ quit:
 
 void Game::init() {
   if (GlobalAppState::get().getAppState() == AppState::AS_FAIL) {
-    std::cerr << "Failed to create systems!" << std::endl; 
+    std::cerr << "Failed to create systems!" << std::endl;
     return;
   }
 
@@ -64,7 +65,7 @@ void Game::init() {
 
   if (GlobalAppState::get().getAppState() != AppState::AS_FAIL) {
     GlobalAppState::get().setAppState(AppState::AS_LOOP, "");
-  } else { 
+  } else {
     std::cerr << "Failed to initalize subsystems!" << std::endl;
   }
 }

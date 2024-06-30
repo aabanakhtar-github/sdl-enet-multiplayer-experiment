@@ -4,34 +4,24 @@
 #include "EventHandler.h"
 #include <functional>
 
-using UserData =
-    std::pair<ECS::EntityID,
-              std::array<std::tuple<ClientInfo, ClientUpdatePayload,
-                                    std::shared_ptr<ECS::EntityID>>,
-                         1024>>;
-
-ServerEventSystem::ServerEventSystem(std::uint16_t port) 
-  : current_scene_(nullptr), net_server_(), preloaded_port_(port) {} 
+ServerEventSystem::ServerEventSystem(std::uint16_t port)
+    : current_scene_(nullptr), net_server_(), preloaded_port_(port) {}
 
 void ServerEventSystem::init(ECS::Scene &scene) {
-  net_server_ = NetServer(preloaded_port_, 10, [this](const PacketData &packet) -> void {
-    this->onRecievePacket(packet);
-  });
+  net_server_ =
+      NetServer(preloaded_port_, 10, [this](const PacketData &packet) -> void {
+        this->onRecievePacket(packet);
+      });
 
   if (!net_server_.getValid()) {
     GlobalAppState::get().setAppState(AppState::AS_FAIL,
                                       "Cannot initialize network!");
   }
 
-  if (!net_server_.getValid()) { 
-    GlobalAppState::get().setAppState(AppState::AS_FAIL, "Could not create network!");  
-    return; 
-  }
-
-  for (auto &[client, data] : net_server_.GetClients()) {
-    auto temp = UserData();
-    temp.first = -1;
-    data.user_data = std::move(temp);
+  if (!net_server_.getValid()) {
+    GlobalAppState::get().setAppState(AppState::AS_FAIL,
+                                      "Could not create network!");
+    return;
   }
 
   EventHandler::get().bindEvent(SDL_QUIT, [&](SDL_Event &e) -> void {
@@ -46,20 +36,7 @@ void ServerEventSystem::init(ECS::Scene &scene) {
   }
 }
 
-void ServerEventSystem::setupServer() {
-
-}
-
-// update the game!!!
-void ServerEventSystem::update(ECS::Scene &scene, float delta) {
-  current_scene_ = &scene;
-  // update animations locally
-  for (std::size_t i = 0; i < anim_states.size(); ++i) {
-    ECS::EntityID ID = client_to_ecs_ID_[i];
-    auto &component = scene.getComponent<AnimationStateMachineComponent>(ID);
-    component.state = anim_states[i].first;
-  }
-
+void ServerEventSystem::updateNetwork(ECS::Scene &scene) {
   if (net_server_.getValid()) {
     net_server_.updateNetwork();
 
@@ -69,7 +46,7 @@ void ServerEventSystem::update(ECS::Scene &scene, float delta) {
       ServerUpdatePayload payload;
 
       update_packet.type = PT_GAME_UPDATE;
-      auto &clients = net_server_.GetClients();
+      auto &clients = net_server_.getClients();
       payload.clients_size = clients.size();
       payload.client_states.resize(payload.clients_size);
 
@@ -99,8 +76,10 @@ void ServerEventSystem::update(ECS::Scene &scene, float delta) {
         // set the animation state and position
         payload.client_states[i] =
             ClientInfo{client.first, client_position,
-                       anim_states[client.second.network_ID].first,
-                       anim_states[client.second.network_ID].second};
+                       anim_states[client.second.network_ID]
+                           .first, // the anim state as a string
+                       anim_states[client.second.network_ID]
+                           .second}; // the facing direction of the player
         ++i;
       }
 
@@ -134,7 +113,19 @@ void ServerEventSystem::update(ECS::Scene &scene, float delta) {
       net_tick_timer_.reset();
     }
   }
+}
 
+// update the game
+void ServerEventSystem::update(ECS::Scene &scene, float delta) {
+  current_scene_ = &scene;
+  // update animations locally
+  for (std::size_t i = 0; i < anim_states.size(); ++i) {
+    ECS::EntityID ID = client_to_ecs_ID_[i];
+    auto &component = scene.getComponent<AnimationStateMachineComponent>(ID);
+    component.state = anim_states[i].first;
+  }
+
+  updateNetwork(scene);
   EventHandler::get().update();
 }
 
@@ -171,6 +162,8 @@ void ServerEventSystem::onRecievePacket(const PacketData &packet) {
 
     break;
   }
+  default:
+    break;
   }
 }
 

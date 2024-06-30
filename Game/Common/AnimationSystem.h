@@ -7,12 +7,11 @@ class Timer;
 struct AnimationStateMachineComponent;
 // Animation state machine
 
-class AnimationSystem : public ECS::ISystem {
+class AnimationSystem : public ECS::SystemBase {
 public:
-    AnimationSystem() = default;
-    void init(ECS::Scene& scene) override;
-    void update(ECS::Scene& scene, float delta) override;
+  AnimationSystem() = default;
+  void init(ECS::Scene &scene) override;
+  void update(ECS::Scene &scene, float delta) override;
 };
 
-
-#endif //GAME_ANIMATION_SYSTEM_H
+#endif // GAME_ANIMATION_SYSTEM_H
