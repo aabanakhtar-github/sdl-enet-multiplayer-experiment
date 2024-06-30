@@ -2,6 +2,7 @@
 #include "Texture.h"
 #include "Util.h"
 #include <cassert>
+#include <cstdint>
 
 Window::Window() : renderer_(nullptr), window_(nullptr) {}
 
