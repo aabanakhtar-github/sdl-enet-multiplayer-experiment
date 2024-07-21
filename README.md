@@ -4,7 +4,7 @@ Basic Multiplayer platformer demo game that has an auhoritative server, supports
 
 ## Features
 - ENet based UDP Networking 
-- Salt Challenge Response Authentication mechanism for preventing IP-spoofing (not protected against sniffers though)
+- Salt based security (Packets, basic IP-Spoofing prevention)
 - SDL2 based rendering
 - Custom ECS framework (IDs, Packed Component Pools, System Managers, Scene Views,  etc) based on Austin Morlan Implementation
 
