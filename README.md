@@ -1,6 +1,6 @@
-# Multiplayer Platformer Demo
+# Multiplayer Platformer Experiment
 
-Basic Multiplayer platformer demo game that has an auhoritative server, supports 10 clients. Uses the ENet, SDL2, and SDL_image libraries.
+Basic Multiplayer platformer experiment game that has an auhoritative server, supports 10 clients. Uses the ENet, SDL2, and SDL_image libraries.
 
 ## Features
 - ENet based UDP Networking 
