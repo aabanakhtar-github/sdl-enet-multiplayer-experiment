@@ -17,8 +17,8 @@ Linux, Windows, Mac not tested
     cmake -S .. 
     cmake --build .
 ```
-Move the ```Assets``` directory to the location of the Client/Server binary.
-On Windows, you also need to move the ENet, SDL, and SDL_image DLL files to the Client/Server binary directory.
+Move the ```Assets``` directory to the location of the Client/Server binary(usually its ```build/Game/```)
+On Windows, you also need to move the ENet, SDL, and SDL_image DLL files to the Client/Server binary directory(You can find these in the library build directories).
 
 ## Usage
 ### Server: 
